@@ -1,0 +1,145 @@
+- main [ref=f6e2]:
+  - generic [ref=f6e4]:
+    - region "Map" [ref=f6e5]
+    - group [ref=f6e147]:
+      - generic "Toggle attribution" [ref=f6e148] [cursor=pointer]
+      - generic [ref=f6e149]:
+        - text: "Terrain: Mapzen / AWS (SRTM, GMTED2010, USGS) |"
+        - link "OpenFreeMap" [ref=f6e150] [cursor=pointer]:
+          - /url: https://openfreemap.org
+        - link "© OpenMapTiles" [ref=f6e151] [cursor=pointer]:
+          - /url: https://www.openmaptiles.org/
+        - text: Data from
+        - link "OpenStreetMap" [ref=f6e152] [cursor=pointer]:
+          - /url: https://www.openstreetmap.org/copyright
+  - generic:
+    - button "Table Mountain Cableway" [ref=f6e6] [cursor=pointer]
+    - button "Bo-Kaap" [ref=f6e8] [cursor=pointer]
+    - button "V&A Waterfront" [ref=f6e10] [cursor=pointer]
+    - button "Zeitz MOCAA Silo" [ref=f6e12] [cursor=pointer]
+    - button "Cape Town Stadium" [ref=f6e14] [cursor=pointer]
+    - button "Sea Point Promenade" [ref=f6e16] [cursor=pointer]
+    - button "Lion's Head" [ref=f6e18] [cursor=pointer]
+    - button "Company's Garden" [ref=f6e20] [cursor=pointer]
+    - button "City Hall & Grand Parade" [ref=f6e22] [cursor=pointer]
+    - button "Castle of Good Hope" [ref=f6e24] [cursor=pointer]
+    - button "District Six" [ref=f6e26] [cursor=pointer]
+    - button "Long Street" [ref=f6e28] [cursor=pointer]
+    - button "Kirstenbosch" [ref=f6e153] [cursor=pointer]
+    - button "Camps Bay" [ref=f6e30] [cursor=pointer]
+  - generic [ref=f6e32]:
+    - generic [ref=f6e33]:
+      - generic [ref=f6e34]: ◈
+      - generic [ref=f6e35]: FIELD ATLAS / AFRICA
+    - generic [ref=f6e36]:
+      - text: A CITY IN MINIATURE
+      - generic [ref=f6e38]: № 02
+  - complementary "Explore Cape Town" [ref=f6e39]:
+    - generic [ref=f6e40]:
+      - generic [ref=f6e41]:
+        - text: WESTERN CAPE, SOUTH AFRICA
+        - generic [ref=f6e42]: 33.92° S · 18.42° E
+      - heading "Cape Town." [level=1] [ref=f6e43]
+      - paragraph [ref=f6e44]: IKAPA eKapa
+      - paragraph [ref=f6e45]: From Table Mountain to the Atlantic edge.A different perspective on the Mother City.
+    - button "▶ Take the city tour 14 STOPS" [ref=f6e46] [cursor=pointer]:
+      - generic [ref=f6e47]: ▶
+      - generic [ref=f6e48]: Take the city tour
+      - generic [ref=f6e49]: 14 STOPS
+    - generic [ref=f6e50]:
+      - generic [ref=f6e51]:
+        - generic [ref=f6e52]: PLACES TO EXPLORE
+        - generic [ref=f6e53]: 01—14
+      - navigation "Landmarks" [ref=f6e54]:
+        - button "01 Table Mountain Cableway ↗" [ref=f6e55] [cursor=pointer]:
+          - generic [ref=f6e56]: "01"
+          - generic [ref=f6e57]: Table Mountain Cableway
+          - generic [ref=f6e58]: ↗
+        - button "02 Bo-Kaap ↗" [ref=f6e59] [cursor=pointer]:
+          - generic [ref=f6e60]: "02"
+          - generic [ref=f6e61]: Bo-Kaap
+          - generic [ref=f6e62]: ↗
+        - button "03 V&A Waterfront ↗" [ref=f6e63] [cursor=pointer]:
+          - generic [ref=f6e64]: "03"
+          - generic [ref=f6e65]: V&A Waterfront
+          - generic [ref=f6e66]: ↗
+        - button "04 Zeitz MOCAA Silo ↗" [ref=f6e67] [cursor=pointer]:
+          - generic [ref=f6e68]: "04"
+          - generic [ref=f6e69]: Zeitz MOCAA Silo
+          - generic [ref=f6e70]: ↗
+        - button "05 Cape Town Stadium ↗" [ref=f6e71] [cursor=pointer]:
+          - generic [ref=f6e72]: "05"
+          - generic [ref=f6e73]: Cape Town Stadium
+          - generic [ref=f6e74]: ↗
+        - button "06 Sea Point Promenade ↗" [ref=f6e75] [cursor=pointer]:
+          - generic [ref=f6e76]: "06"
+          - generic [ref=f6e77]: Sea Point Promenade
+          - generic [ref=f6e78]: ↗
+        - button "07 Lion's Head ↗" [ref=f6e79] [cursor=pointer]:
+          - generic [ref=f6e80]: "07"
+          - generic [ref=f6e81]: Lion's Head
+          - generic [ref=f6e82]: ↗
+        - button "08 Company's Garden ↗" [ref=f6e83] [cursor=pointer]:
+          - generic [ref=f6e84]: "08"
+          - generic [ref=f6e85]: Company's Garden
+          - generic [ref=f6e86]: ↗
+        - button "09 City Hall & Grand Parade ↗" [ref=f6e87] [cursor=pointer]:
+          - generic [ref=f6e88]: "09"
+          - generic [ref=f6e89]: City Hall & Grand Parade
+          - generic [ref=f6e90]: ↗
+        - button "10 Castle of Good Hope ↗" [ref=f6e91] [cursor=pointer]:
+          - generic [ref=f6e92]: "10"
+          - generic [ref=f6e93]: Castle of Good Hope
+          - generic [ref=f6e94]: ↗
+        - button "11 District Six ↗" [ref=f6e95] [cursor=pointer]:
+          - generic [ref=f6e96]: "11"
+          - generic [ref=f6e97]: District Six
+          - generic [ref=f6e98]: ↗
+        - button "12 Long Street ↗" [ref=f6e99] [cursor=pointer]:
+          - generic [ref=f6e100]: "12"
+          - generic [ref=f6e101]: Long Street
+          - generic [ref=f6e102]: ↗
+        - button "13 Kirstenbosch ↗" [ref=f6e103] [cursor=pointer]:
+          - generic [ref=f6e104]: "13"
+          - generic [ref=f6e105]: Kirstenbosch
+          - generic [ref=f6e106]: ↗
+        - button "14 Camps Bay ↗" [ref=f6e107] [cursor=pointer]:
+          - generic [ref=f6e108]: "14"
+          - generic [ref=f6e109]: Camps Bay
+          - generic [ref=f6e110]: ↗
+      - generic [ref=f6e111]:
+        - text: Real-world map data
+        - button "About this model" [ref=f6e113] [cursor=pointer]: ⓘ
+  - generic [ref=f6e114]:
+    - generic [ref=f6e115]:
+      - generic [ref=f6e116]: +
+      - generic [ref=f6e117]: THE FLAT-TOP ICON
+    - group "Time of day" [ref=f6e118]:
+      - button "☀ Day" [pressed] [ref=f6e119] [cursor=pointer]
+      - button "◐ Sunset" [ref=f6e120] [cursor=pointer]
+      - button "☾ Night" [ref=f6e121] [cursor=pointer]
+  - generic [ref=f6e122]:
+    - generic [ref=f6e123]:
+      - text: ◉ EXPLORING
+      - generic [ref=f6e124]: 01 / 14
+    - heading "Table Mountain Cableway" [level=2] [ref=f6e125]
+    - paragraph [ref=f6e126]: Lower Cable Station and the revolving car climbing 1,067 m to the plateau. Orbit to read the cliff face and city bowl below.
+    - button "Next stop ›" [ref=f6e127] [cursor=pointer]
+  - generic [ref=f6e128]:
+    - button "North-up overhead view" [ref=f6e129] [cursor=pointer]:
+      - generic [ref=f6e130]: "N"
+      - generic [ref=f6e131]: ◔
+    - generic [ref=f6e132]:
+      - button "Zoom in" [ref=f6e133] [cursor=pointer]: +
+      - button "Zoom out" [ref=f6e134] [cursor=pointer]: −
+      - button "Reset city view" [ref=f6e135] [cursor=pointer]: ⌂
+    - button "Map layers and height" [ref=f6e136] [cursor=pointer]: ▤
+  - generic [ref=f6e137]:
+    - generic [ref=f6e138]: ⟳ Drag to orbit · Scroll to zoom · Right-drag to pan
+    - generic [ref=f6e140]:
+      - link "© OpenStreetMap" [ref=f6e141] [cursor=pointer]:
+        - /url: https://www.openstreetmap.org/copyright
+      - text: /
+      - link "OpenFreeMap" [ref=f6e142] [cursor=pointer]:
+        - /url: https://openfreemap.org
+      - button "Data & credits ⓘ" [ref=f6e143] [cursor=pointer]

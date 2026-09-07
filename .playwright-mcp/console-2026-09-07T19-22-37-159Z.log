@@ -1,0 +1,1 @@
+[   60343ms] [WARNING] cannot calculate elevation if elevation maxzoom > source.maxzoom @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41

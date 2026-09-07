@@ -1,0 +1,81 @@
+[     212ms] [WARNING] Image "wood-pattern" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2012ms] [ERROR] Error: Cannot style non-existing layer "lc-wood".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2012ms] [ERROR] Error: Cannot style non-existing layer "lc-fynbos".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2013ms] [ERROR] Error: Cannot style non-existing layer "lc-farm".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2013ms] [ERROR] Error: Cannot style non-existing layer "lc-sand".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2013ms] [ERROR] Error: Cannot style non-existing layer "lc-rock".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2013ms] [ERROR] Error: Cannot style non-existing layer "lu-green".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2013ms] [ERROR] Error: Cannot style non-existing layer "lu-sand".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
+[    2013ms] [ERROR] Error: Cannot style non-existing layer "lu-rock".
+    at wi.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:288360)
+    at e.Map.setPaintProperty (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:510585)
+    at A (http://localhost:4173/assets/index-DAFH8diw.js:1:7762)
+    at f (http://localhost:4173/assets/index-DAFH8diw.js:1:8445)
+    at e.Map.<anonymous> (http://localhost:4173/assets/index-DAFH8diw.js:1:12505)
+    at e.Map.fire (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:42:12212)
+    at e.Map._render (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:516550)
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:518283
+    at https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:358 @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
