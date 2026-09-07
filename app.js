@@ -80,8 +80,9 @@ document.getElementById("tourBtn").addEventListener("click", () => (touring ? st
 document.getElementById("nextBtn").addEventListener("click", () => { stopTour(); goTo((current + 1) % LANDMARKS.length); });
 document.getElementById("mobileToggle").addEventListener("click", (e) => {
   const body = document.getElementById("explorerBody");
-  const open = body.classList.toggle("collapsed");
-  e.currentTarget.setAttribute("aria-expanded", String(!open));
+  const collapsed = body.classList.toggle("collapsed");
+  body.closest(".explorer").classList.toggle("expanded", !collapsed);
+  e.currentTarget.setAttribute("aria-expanded", String(!collapsed));
 });
 // On small screens the explorer starts collapsed so the map stays visible.
 if (window.matchMedia("(max-width: 900px)").matches) {
