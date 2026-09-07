@@ -1,5 +1,7 @@
 # Cape Town — A city in miniature
 
+**Live: https://joblife.github.io/cape-town-3d-atlas/**
+
 Field Atlas № 02. A 3D miniature of Cape Town in the same spirit as the Gurgaon 3D Atlas:
 real-world map data, 14 landmark stops, a guided city tour, and three ways to see the light.
 
