@@ -83,6 +83,11 @@ document.getElementById("mobileToggle").addEventListener("click", (e) => {
   const open = body.classList.toggle("collapsed");
   e.currentTarget.setAttribute("aria-expanded", String(!open));
 });
+// On small screens the explorer starts collapsed so the map stays visible.
+if (window.matchMedia("(max-width: 900px)").matches) {
+  document.getElementById("explorerBody").classList.add("collapsed");
+  document.getElementById("mobileToggle").setAttribute("aria-expanded", "false");
+}
 
 // Lighting presets — adapted from the Seoul 3D Atlas recipe:
 // pale diorama ground, sage vegetation, teal water, warm-white roads,
