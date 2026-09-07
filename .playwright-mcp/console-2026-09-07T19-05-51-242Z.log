@@ -1,8 +1,0 @@
-[     148ms] [WARNING] Image "wood-pattern" could not be loaded. Please make sure you have added the image with map.addImage() or a "sprite" property in your style. You can provide missing images by listening for the "styleimagemissing" map event. @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
-[   45576ms] [ERROR] Error: The layer 'landcover_wood' does not exist in the map's style and cannot be queried for features.
-    at wi.queryRenderedFeatures (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:291981)
-    at e.Map.queryRenderedFeatures (https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:46:502625)
-    at eval (eval at <anonymous> (eval at evaluate (:311:30)), <anonymous>:1:78)
-    at eval (eval at evaluate (:311:30), <anonymous>:4:50)
-    at UtilityScript.evaluate (<anonymous>:313:16)
-    at UtilityScript.<anonymous> (<anonymous>:1:44) @ https://unpkg.com/maplibre-gl@5.7.0/dist/maplibre-gl.js:41
