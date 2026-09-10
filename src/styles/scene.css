@@ -1,0 +1,361 @@
+/* The map stage: canvas, star field, grade, beacons, letterbox, loading. */
+
+.app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.scene { position: absolute; inset: 0; }
+.scene__map { position: absolute; inset: 0; background: var(--ink-950); }
+.scene__map canvas { outline: none; }
+
+/* MapLibre's own chrome is fully suppressed — we provide all controls. */
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-top-right,
+.maplibregl-ctrl-top-left { display: none !important; }
+.maplibregl-canvas:focus { outline: none; }
+
+/* Star field: a single pre-rendered canvas, masked to the sky above the
+   horizon. Re-masked (not redrawn) as the camera moves. */
+.scene__stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+  /* The visible sky is the band above the horizon, which sits high in the
+     frame at a steep pitch: mask tightly so stars never appear over terrain. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 34%, transparent 48%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 34%, transparent 48%);
+}
+.app[data-night="true"] .scene__stars { opacity: var(--stars-opacity, 0.72); }
+
+/* Vignette + grain: keeps the 3D read as a photographed model. */
+.scene__grade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 100% at 52% 34%, transparent 48%, rgba(0, 0, 0, 0.34) 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0%, transparent 14%, transparent 82%, rgba(0, 0, 0, 0.28) 100%);
+  mix-blend-mode: multiply;
+}
+.scene__grade::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 5s steps(4) infinite;
+}
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-1.5%, 1%); }
+  50% { transform: translate(1%, -1.5%); }
+  75% { transform: translate(-1%, -1%); }
+}
+
+/* Cinematic bars, only in photo mode. */
+.scene__letterbox { position: absolute; inset: 0; pointer-events: none; }
+.scene__letterbox::before,
+.scene__letterbox::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: #000;
+  transition: height var(--dur-3) var(--ease-out);
+}
+.scene__letterbox::before { top: 0; }
+.scene__letterbox::after { bottom: 0; }
+.app[data-photo="true"] .scene__letterbox::before,
+.app[data-photo="true"] .scene__letterbox::after { height: 7.5vh; }
+
+/* ── beacons on the map ──────────────────────────────────────── */
+
+.scene__beacons { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+
+.beacon {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-2);
+  background: rgba(9, 12, 15, 0.9);
+  color: var(--paper-2);
+  font-size: 11.5px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  transition: color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease), opacity var(--dur-2) var(--ease);
+  will-change: transform;
+}
+.beacon__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--beacon-accent, var(--amber));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--beacon-accent, var(--amber)) 22%, transparent);
+  flex: 0 0 auto;
+}
+.beacon__name { max-width: 168px; overflow: hidden; text-overflow: ellipsis; }
+.beacon__visit { width: 5px; height: 5px; border-radius: 50%; background: var(--paper-2); opacity: 0; }
+.beacon.is-visited .beacon__visit { opacity: 0.5; }
+
+.beacon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 1px;
+  height: 5px;
+  background: linear-gradient(to bottom, var(--line-2), transparent);
+}
+.beacon:hover { color: #fff; border-color: var(--amber); background: rgba(14, 18, 22, 0.96); z-index: 3; }
+.beacon.is-active {
+  background: var(--beacon-accent, var(--amber));
+  border-color: var(--beacon-accent, var(--amber));
+  color: #1a1206;
+  font-weight: 600;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+}
+.beacon.is-active .beacon__dot { background: #1a1206; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.18); }
+.beacon.is-active .beacon__visit { background: #1a1206; }
+.beacon.is-active::after { background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent); }
+
+/* The pulse ring marks the focused place without shouting. */
+.beacon__pulse {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--beacon-accent, var(--amber));
+  opacity: 0;
+  pointer-events: none;
+}
+.beacon.is-active .beacon__pulse { animation: beacon-pulse 2.6s var(--ease-out) infinite; }
+@keyframes beacon-pulse {
+  0% { transform: scale(0.5); opacity: 0.85; }
+  70% { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* Cluster chip shown when beacons are hidden at low zoom. */
+.beacon.is-tiny { height: 22px; font-size: 11px; padding: 0 8px; }
+.beacon.is-tiny .beacon__name { max-width: 92px; }
+
+/* ── hover card for whatever you point at ────────────────────── */
+
+.identify {
+  position: absolute;
+  z-index: 12;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 14px));
+  min-width: 132px;
+  max-width: 260px;
+  padding: 9px 11px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--line-2);
+  background: rgba(9, 12, 15, 0.94);
+  box-shadow: var(--shadow-2);
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease);
+}
+.identify.is-on { opacity: 1; }
+.identify__name { font-size: 13px; color: var(--paper); font-weight: 500; }
+.identify__meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.identify__cta { margin-top: 6px; font-size: 11px; color: var(--amber-hi); }
+.identify::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 1px;
+  height: 6px;
+  background: var(--line-2);
+}
+
+/* ── loading ─────────────────────────────────────────────────── */
+
+.loading {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background: var(--ink-950);
+  transition: opacity var(--dur-3) var(--ease), visibility var(--dur-3);
+}
+.loading.is-done { opacity: 0; visibility: hidden; }
+.loading__inner { display: flex; align-items: center; gap: 12px; }
+.loading__spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-2);
+  border-top-color: var(--amber);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading__text { font-size: 13px; color: var(--paper-2); letter-spacing: 0.02em; }
+
+/* ── opening shot ────────────────────────────────────────────── */
+
+.intro {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  align-content: end;
+  padding: 0 0 12vh clamp(24px, 7vw, 110px);
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(4, 6, 8, 0.72) 0%, rgba(4, 6, 8, 0.28) 42%, transparent 70%);
+  transition: opacity 900ms var(--ease), visibility 900ms;
+}
+.intro__bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--amber);
+  transform-origin: left;
+  animation: intro-bar 5.4s var(--ease) forwards;
+}
+@keyframes intro-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.intro__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 0 0 14px;
+  animation: intro-rise 1.1s var(--ease-out) 0.25s both;
+}
+.intro__title {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 11vw, 148px);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-weight: 300;
+  color: #fff;
+  text-shadow: 0 8px 60px rgba(0, 0, 0, 0.5);
+  animation: intro-rise 1.3s var(--ease-out) 0.4s both;
+}
+.intro__line {
+  margin: 20px 0 0;
+  max-width: 34ch;
+  font-size: clamp(14px, 1.5vw, 17px);
+  line-height: 1.6;
+  color: var(--paper-2);
+  animation: intro-rise 1.3s var(--ease-out) 0.62s both;
+}
+.intro__skip {
+  position: absolute;
+  right: clamp(20px, 5vw, 60px);
+  bottom: 6vh;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  animation: intro-rise 1.2s var(--ease-out) 1.4s both;
+}
+.intro.is-out { opacity: 0; visibility: hidden; }
+@keyframes intro-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── photo mode: everything but the map steps aside ──────────── */
+
+.app[data-photo="true"] .topbar,
+.app[data-photo="true"] .rail,
+.app[data-photo="true"] .dossier,
+.app[data-photo="true"] .tools,
+.app[data-photo="true"] .player,
+.app[data-photo="true"] .scene__beacons {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur-2) var(--ease), visibility var(--dur-2);
+}
+.app[data-photo="true"] .attrib { opacity: 0.55; transition: opacity var(--dur-3) var(--ease); }
+.app[data-photo="true"] .scene__grade {
+  background:
+    radial-gradient(140% 110% at 50% 38%, transparent 42%, rgba(0, 0, 0, 0.5) 100%),
+    linear-gradient(to bottom, rgba(10, 6, 0, 0.1) 0%, transparent 20%, transparent 70%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+/* Toast: quiet confirmations, never modal. */
+.toasts {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--pad) + 8px);
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-2);
+  background: rgba(9, 12, 15, 0.94);
+  box-shadow: var(--shadow-2);
+  font-size: 13px;
+  color: var(--paper);
+  animation: toast-in var(--dur-2) var(--ease-out) both;
+  transition: opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
+}
+.toast.is-out { opacity: 0; transform: translateY(8px); }
+.toast__key { font-family: var(--font-mono); font-size: 10.5px; color: var(--amber-hi); border: 1px solid var(--line-2); border-radius: 4px; padding: 2px 5px; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+}
+
+/* One-time gesture hint. */
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--pad) + 6px);
+  transform: translateX(-50%);
+  z-index: 60;
+  pointer-events: none;
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: rgba(9, 12, 15, 0.8);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper-2);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease);
+}
+.hint.is-on { opacity: 1; }
+
+/* MapLibre popup skin, only used by the identify card fallback. */
+.maplibregl-popup-content { background: var(--panel-solid); border: 1px solid var(--line-2); border-radius: var(--r-2); }
+.maplibregl-popup-tip { border-top-color: var(--panel-solid) !important; }

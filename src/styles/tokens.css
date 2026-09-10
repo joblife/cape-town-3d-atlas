@@ -1,0 +1,194 @@
+/* Design tokens, reset, and the small primitives everything else builds on. */
+
+:root {
+  color-scheme: dark;
+
+  /* Ink — the chrome. Deliberately near-black and slightly blue, so the
+     warm map palette reads as paper against it. */
+  --ink-950: #07090b;
+  --ink-900: #0b0e11;
+  --ink-850: #0f1317;
+  --ink-800: #141a1f;
+  --ink-700: #1c242b;
+  --ink-600: #27313a;
+  --ink-500: #3a4753;
+
+  --line: rgba(255, 255, 255, 0.085);
+  --line-2: rgba(255, 255, 255, 0.16);
+
+  /* Paper — the text. */
+  --paper: #f1ece2;
+  --paper-2: #cec8bb;
+  --muted: #a6afb7;
+  --faint: #7f888f;
+
+  /* Accents. Amber is the atlas accent (sandstone at golden hour);
+     the rest are story/plate accents. */
+  --amber: #e0a45e;
+  --amber-hi: #f4c890;
+  --amber-ink: #2a1b0c;
+  --teal: #4e9db5;
+  --rose: #c2705e;
+  --violet: #8e86b8;
+  --green: #7fa678;
+  --accent: var(--amber);
+
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+
+  --r-1: 6px;
+  --r-2: 10px;
+  --r-3: 14px;
+  --r-pill: 999px;
+
+  --dur-1: 130ms;
+  --dur-2: 260ms;
+  --dur-3: 520ms;
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --shadow-2: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+  --panel: rgba(11, 14, 17, 0.86);
+  --panel-solid: #0d1114;
+
+  --topbar-h: 58px;
+  --rail-w: 376px;
+  --dossier-w: 468px;
+  --player-h: 120px;
+  --pad: 14px;
+
+  /* Set from JS: viewport insets reserved by open panels, used to compose the
+     camera so its subject is never hidden behind chrome. */
+  --inset-left: 0px;
+  --inset-right: 0px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--ink-900);
+  color: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+
+body { overflow: hidden; }
+
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+
+a { color: var(--paper-2); text-decoration-color: var(--line-2); text-underline-offset: 2px; }
+a:hover { color: var(--paper); }
+
+h1, h2, h3, h4 { margin: 0; font-weight: 400; }
+
+::selection { background: var(--amber); color: var(--amber-ink); }
+
+:focus-visible {
+  outline: 2px solid var(--amber-hi);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 12px;
+  z-index: 200;
+  padding: 10px 14px;
+  background: var(--amber);
+  color: var(--amber-ink);
+  border-radius: var(--r-1);
+  transition: top var(--dur-2) var(--ease);
+}
+.skip-link:focus { top: 12px; }
+
+/* ── type primitives ─────────────────────────────────────────── */
+
+
+.micro {
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.data { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.02em; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ── small components ────────────────────────────────────────── */
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 5px;
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  color: var(--faint);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--paper-2);
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition: border-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+button.chip:hover { border-color: var(--line-2); color: var(--paper); background: rgba(255, 255, 255, 0.06); }
+.chip.is-on { border-color: var(--amber); color: var(--amber-hi); background: color-mix(in oklab, var(--amber) 14%, transparent); }
+.chip__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.85; }
+
+.chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--line-2);
+  color: var(--paper);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+.btn:hover { background: rgba(255, 255, 255, 0.05); }
+.btn:active { transform: translateY(1px); }
+.btn--ghost { border-color: transparent; color: var(--paper-2); }
+.btn--ghost:hover { border-color: var(--line); color: var(--paper); }
+.btn--block { width: 100%; }
+.btn__icon { display: grid; place-items: center; width: 16px; height: 16px; }
+
+
+.empty {
+  padding: 32px 18px;
+  text-align: center;
+  color: var(--faint);
+  font-size: 13.5px;
+}
+
+/* Animated ellipsis-free ticker for numeric readouts. */
+.tick { display: inline-block; transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

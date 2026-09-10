@@ -1,64 +1,138 @@
-# Cape Town — A city in miniature
+# Cape Town Atlas
 
-**Live: https://joblife.github.io/cape-town-3d-atlas/**
-
-Field Atlas № 02. A 3D miniature of Cape Town in the same spirit as the Gurgaon 3D Atlas:
-real-world map data, 14 landmark stops, a guided city tour, and three ways to see the light.
-
-## Run it
+An interactive field guide to Cape Town. A live three-dimensional model of the city,
+built from OpenStreetMap data and real elevation, lit by the actual position of the
+sun, organised into districts and narrated routes.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev            # http://localhost:5173
+npm run build          # typecheck + production bundle into dist/
+npm run preview        # serve the bundle
+npm run verify:data    # validate the content layer
 ```
 
-Or serve the production build:
+No API keys. Tiles and elevation stream at runtime from OpenFreeMap and AWS Terrain
+Tiles; weather comes from Open-Meteo; archival photographs come from Wikipedia.
 
-```bash
-npm run build
-npm run preview  # http://localhost:4173
+---
+
+## What it is
+
+**A model, not a picture.** Buildings are extruded from OSM footprints and storey
+counts, draped over SRTM terrain. Everything is drawn live, so the city can be
+examined from any angle at any time of day.
+
+**Light that is real.** Solar position is computed for Cape Town's coordinates with
+the NOAA almanac formulation (altitude and azimuth to about 0.01°). Four measured
+light states — night, twilight, golden, day — are blended continuously as a function
+of the sun's altitude rather than switched between, so the ground, sea, roads,
+buildings and sky all move together through the day. Live cloud cover from
+Open-Meteo then flattens and greys the light, which is the main reason the same city
+reads differently on different days. The time control exposes a 24-hour solar arc
+that can be dragged: sunrise, solar noon and sunset for today are computed, not
+assumed.
+
+**Content with a point of view.** 37 places, each with a standfirst, a 2–4 paragraph
+story, facts, often a timeline, things to look for on the ground, and practical
+notes. Twelve districts carry their own essays and a drawn boundary on the map. Five
+routes string places into arguments about the city — how the mountain and the harbour
+squeeze the centre, what was removed under apartheid, how the mountain makes the
+weather, what the cold Atlantic edge is like, and how this harbour connected the Cape
+to the world.
+
+**A camera with intent.** Flights are composed: duration follows distance and zoom
+change, long hops arc high, short hops stay low, arrivals swing in and settle rather
+than stopping dead, and the framing respects whatever panels are on screen so a place
+is never parked underneath the interface. Any gesture interrupts a flight.
+
+## Using it
+
+| Input | Action |
+| --- | --- |
+| `⌘K` / `Ctrl K` | Search places, districts and routes |
+| `←` `→` | Previous / next place |
+| `Space` | Play or pause the current route |
+| `T` | Light control (24-hour solar arc, live weather) |
+| `F` | Fly back to the whole city |
+| `P` | Photo mode — hides every panel |
+| `D` | District boundaries |
+| `1` `2` `3` | Places / districts / stories |
+| `?` | About, sources and limitations |
+| `Esc` | Close whatever is open |
+
+Drag to orbit, scroll to move in, right-drag to pan, two fingers to pinch and rotate.
+On a phone the index is a draggable bottom sheet and dossiers open full screen.
+
+The URL carries the view: `?place=castle-of-good-hope`, `?district=table-mountain`,
+`?cam=lon,lat,zoom,pitch,bearing`, `?t=minutes`, `?photo=1`. A copied link restores
+the exact camera, so a view can be sent to someone.
+
+## Architecture
+
+```
+src/
+  main.ts               entry: wiring, actions, keyboard, boot sequence
+  core/
+    atlas.ts            owns MapLibre; retargets paint for the light; hit testing
+    camera.ts           composed flights, interruption, inset-aware framing
+    lighting.ts         the clock: sun → palette → map, plus live weather
+    presets.ts          four light states and the blending between them
+    sun.ts              solar/lunar geometry, rise/set, day length
+    story.ts            story playback: flights, holds, scrubbing
+    state.ts            observable store + URL mirroring
+    geo.ts              distance, framing offsets, flight timing
+  map/style.ts          the map style, authored against the OMT schema
+  layers/               district plates, star field
+  ui/                   rail, dossier, player, search, light dialog, beacons, …
+  data/                 authored content (places, districts, stories) + index
+  styles/               design tokens and per-surface stylesheets
 ```
 
-No API keys needed. Tiles stream from OpenFreeMap + AWS terrain at runtime.
+**Data flow.** `data/index.ts` joins the authored content files, derives district
+membership and search, and exposes lookups. `Lighting` owns the clock and, on each
+tick, computes solar geometry, blends the surface palette, and retargets the map's
+paint, sky, light and hillshade. `Store` holds view state and mirrors it into the URL.
+UI modules render from a snapshot; nothing reaches into anything else's internals.
 
-## What it does
+**Light without style reloads.** The map style is built once with daylight paint.
+Changing the light retargets paint properties — it never swaps the style — so tiles
+are never reloaded and the sun can move continuously. The directional light is
+anchored to the map, so its azimuth is geographic: a north-facing wall is in shadow
+when the sun is in the north, and the shading stays correct as the map rotates.
 
-- **3D miniature** — OpenFreeMap vector tiles (© OpenStreetMap) extruded to 3D
-  buildings, draped over Mapzen/AWS Terrarium terrain with Table Mountain relief.
-- **14 stops** — Table Mountain Cableway, Bo-Kaap, V&A Waterfront, Zeitz MOCAA,
-  Cape Town Stadium, Sea Point Promenade, Lion's Head, Company's Garden,
-  City Hall & Grand Parade, Castle of Good Hope, District Six, Long Street,
-  Kirstenbosch, Camps Bay (`landmarks.js` — edit coords/copy freely).
-- **City tour** — auto-flies stop to stop (~5s each); `Space` toggles, `←/→` steps.
-- **Day / Sunset / Night** — sky, fog, sun + building wash presets.
-- **Field Atlas UI** — explorer panel, floating map labels with de-collision,
-  place-detail card, compass/zoom/reset tools, layers panel (buildings, labels,
-  terrain, height exaggeration), data & credits modal.
+**Every colour is applied.** The palette is a `Record<SurfaceKey, string>` and each
+key maps to a set of layers by `SURFACE_LAYERS`. A key with no layer is dead
+configuration, so the validator-adjacent rule is simply: if it is in the palette, it
+paints something.
 
-## Colour recipe (adapted from the Seoul 3D Atlas)
+### Content
 
-The 3D scene follows the Seoul atlas's light-miniature recipe (`PRESETS` in `app.js`):
+`scripts/verify-data.mjs` enforces the invariants that a reader would notice:
+unique kebab-case ids, coordinates inside greater Cape Town, camera zoom/pitch/framing
+ranges, hero cameras near their subject, district centres inside their own polygons,
+every place inside its district's drawn boundary, story stops that resolve to real
+places with narration of a sane length, and no duplicates within a route.
 
-| Element | Day | Sunset | Night |
-|---|---|---|---|
-| Ground base | `#b3b9a1` grey-sage (soft on the eyes) | `#c2b493` warm paper | `#23353c` deep teal-navy |
-| Woods / forest | `#4f6b4f` | `#4d5c3e` | `#16281f` |
-| Parks | `#6e8c5f` | `#6d7448` | `#1b3029` |
-| Fynbos / grass | `#8e9578` grey-olive | `#8d8a6a` | `#22352b` |
-| Sand / beach | `#eee5d0` ivory | `#ebcda4` | `#4c4a3a` |
-| Rock | `#bec9c1` grey | `#b09a80` | `#2e3c42` |
-| Sea | `#3d94b0` teal | `#739ba9` | `#205d72` |
-| Reservoirs / rivers | `#2f7e9c` | `#5f8b9b` | `#2a7d97` (glow) |
-| Roads | `#f1ede0` warm white | `#f5e3c2` | `#5f6f75` |
-| Buildings | white `#f4f2ea` → blue-grey `#b9cdc9` by height | warm ivory → glass | slate → glowing cyan towers |
+`src/data/types.ts` is the contract. Adding a place means dropping an object into the
+appropriate `places-*.ts` file and re-running `npm run verify:data`.
 
-Sun `#fff2d6` / `#ffb579` / moon `#8dacd2`; terrain exaggeration 1.2×.
+## Honesty about the model
 
-## Notes / differences vs the Gurgaon original
+Building geometry is approximated from footprints and storey counts, not surveyed:
+roof shapes, interiors and the heights of untagged buildings are inferences, and the
+terrain is smoothed to a 30 m grid. The model is a miniature, so terrain is
+exaggerated 1.18× and building heights 1.2× — a city of two- and three-storey
+buildings reads flat otherwise. Both are adjustable in the layers panel and stated in
+the About dialog. Nothing here substitutes for looking at the actual place, and
+openings, prices and timings change.
 
-- The original pre-bakes a ~55 MB custom geometry binary (`atlas.bin.gz`) with
-  satellite-corrected heights. This build streams live vector tiles instead, so
-  it stays dependency-free and always current — at the cost of stylised rather
-  than architect-accurate hero buildings (e.g. no bespoke cableway/museum models).
-- OSM `building:levels` heights are used where tagged (`render_height` /
-  `render_levels` from OpenMapTiles); untagged buildings fall back to ~2 levels.
+## Sources
+
+- Buildings, roads, land cover: © OpenStreetMap contributors, served as vector tiles
+  by OpenFreeMap (openmaptiles schema).
+- Elevation: Mapzen / AWS Terrain Tiles (SRTM and GMTED2010, courtesy USGS).
+- Weather: Open-Meteo.
+- Photographs and encyclopaedia extracts: Wikipedia and Wikimedia Commons, credited
+  per place where used.
+- Type: Fraunces and Instrument Sans (Google Fonts).

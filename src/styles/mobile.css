@@ -1,0 +1,171 @@
+/* Mobile and small screens: the index becomes a draggable sheet, the dossier
+   becomes a full-screen reader, and the map keeps the full screen behind them. */
+
+@media (max-width: 1024px) {
+  :root {
+    --topbar-h: 54px;
+    --pad: 10px;
+    --sheet-peek: 148px;
+  }
+
+  /* Map labels: smaller, and shorter, so several can coexist on a phone. */
+  .beacon { height: 24px; font-size: 11px; padding: 0 9px 0 7px; gap: 6px; }
+  .beacon__name { max-width: 104px; }
+  .beacon.is-tiny { height: 21px; font-size: 10.5px; }
+  .beacon.is-tiny .beacon__name { max-width: 76px; }
+  .identify { max-width: 210px; padding: 8px 10px; }
+
+  .brand__sub { display: none; }
+  .brand__name { font-size: 17px; }
+  .crumbs { display: none; }
+  .tbtn__label { display: none; }
+  .tbtn { padding: 0 10px; }
+  .tbtn--search .kbd { display: none; }
+
+  /* ── index as a bottom sheet ───────────────────────────────── */
+  .rail {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: 78vh;
+    border-right: 0;
+    border-top: 1px solid var(--line-2);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -22px 60px rgba(0, 0, 0, 0.5);
+    padding-bottom: env(safe-area-inset-bottom);
+    backdrop-filter: none;
+    background: linear-gradient(to bottom, #0e1216, #0a0d10);
+    transition: transform var(--dur-3) var(--ease-out);
+    touch-action: none;
+  }
+  .rail::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 38px;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .rail__head { padding: 20px 12px 10px; touch-action: none; }
+  .rail__body { touch-action: pan-y; }
+  .rail__foot { display: none; }
+
+  .app[data-sheet="peek"] .rail { transform: translateY(calc(100% - var(--sheet-peek))); }
+  .app[data-sheet="half"] .rail { transform: translateY(26%); }
+  .app[data-sheet="full"] .rail { transform: translateY(0); }
+  .app[data-panel="focus"] .rail { transform: translateY(102%); opacity: 1; pointer-events: none; }
+  .app[data-sheet="half"] .rail__filters,
+  .app[data-sheet="peek"] .rail__filters { display: none; }
+
+  /* ── dossier as a full-screen reader ───────────────────────── */
+  .dossier {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    z-index: 58;
+    border-left: 0;
+    transform: translateY(101%);
+    background: linear-gradient(to bottom, #0d1114, #090c0f 60%);
+    backdrop-filter: none;
+  }
+  .dos__hero { aspect-ratio: 4 / 3; padding-top: env(safe-area-inset-top); }
+  .dos__name { font-size: 28px; }
+  .dos__body { padding: 16px 16px 8px; }
+  .dos__close { position: absolute; right: 12px; top: 12px; }
+  .dos__bar { padding-top: calc(9px + env(safe-area-inset-top)); }
+  .dos__foot { position: sticky; bottom: 0; background: rgba(9, 12, 15, 0.94); backdrop-filter: blur(14px); }
+  .dos__facts { grid-template-columns: 1fr 1fr; }
+
+  /* ── tools ─────────────────────────────────────────────────── */
+  .tools { top: 34%; right: 8px; transform: none; gap: 6px; }
+  .tool-group { display: none; }
+  .tool { width: 44px; height: 44px; }
+  .pop { min-width: 210px; }
+
+  /* ── player sits above the sheet ───────────────────────────── */
+  .player {
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--sheet-peek) + 8px);
+    width: auto;
+    transform: none;
+    border-radius: var(--r-2);
+  }
+  @keyframes player-in {
+    from { opacity: 0; transform: translateY(14px); }
+  }
+  .player__row { grid-template-columns: auto 1fr auto; gap: 10px; padding: 10px 11px; }
+  .player__narration { font-size: 13px; min-height: 38px; -webkit-line-clamp: 3; }
+  .player__ctrls .pbtn:not(.pbtn--play) { display: none; }
+  .player.is-expanded .player__ctrls .pbtn { display: grid; }
+  .app[data-sheet="half"] .player,
+  .app[data-sheet="full"] .player { display: none; }
+
+  .attrib {
+    left: 10px;
+    right: 10px;
+    bottom: calc(var(--sheet-peek) + 4px);
+    font-size: 10px;
+    pointer-events: auto;
+  }
+  .attrib a { display: none; }
+  .attrib__scale { border-right: 0; padding-right: 0; }
+  .app[data-photo="true"] .attrib { bottom: 10px; }
+
+  .toasts { bottom: calc(var(--sheet-peek) + 12px); }
+  .hint { bottom: calc(var(--sheet-peek) + 4px); font-size: 9.5px; }
+
+  .intro { padding: 0 18px 8vh; align-content: end; }
+  .intro__title { font-size: clamp(46px, 15vw, 76px); }
+  .intro__line { font-size: 13.5px; }
+  .intro__skip { display: none; }
+
+  .welcome {
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--sheet-peek) + 8px);
+    width: auto;
+    transform: none;
+    padding: 16px;
+    max-height: 62vh;
+    overflow-y: auto;
+  }
+  .welcome__cards { grid-template-columns: 1fr; }
+  .welcome__title { font-size: 21px; }
+
+  .sheet-dialog { width: calc(100vw - 16px); max-height: 84vh; }
+  .time__clock { font-size: 38px; }
+  .sunarc { height: 108px; }
+  .sunarc__hit { height: 72px; }
+  .palette__results { max-height: 62vh; }
+  .palette__foot { display: none; }
+
+  /* Coarse pointers get real touch targets. */
+  .prow { padding: 11px 10px; }
+  .chip { padding: 7px 12px; }
+  .seg__btn { padding: 9px 10px; }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  :root { --sheet-peek: 128px; }
+  .rail { height: 88vh; }
+  .dos__hero { aspect-ratio: 5 / 2; }
+}
+
+/* Very large screens: give the map room and enlarge the reading column. */
+@media (min-width: 1700px) {
+  :root { --rail-w: 404px; --dossier-w: 520px; }
+}
+
+@media (pointer: coarse) {
+  .beacon { height: 30px; font-size: 12px; }
+  .tool { width: 46px; height: 46px; }
+  .dos__look li { padding-top: 11px; padding-bottom: 11px; }
+}
