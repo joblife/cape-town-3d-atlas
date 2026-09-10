@@ -67,6 +67,7 @@ export class Beacons {
   private activeId: string | null = null;
   private visited = new Set<string>();
   private enabled = true;
+  private ready = false;
   private scheduled = false;
   private frame: number | null = null;
 
@@ -115,9 +116,14 @@ export class Beacons {
     opts.atlas.map.on("rotate", invalidate);
     opts.atlas.map.on("pitch", invalidate);
     opts.atlas.map.on("resize", invalidate);
-    // A camera restored from a link never moves, so nothing above would fire:
-    // lay the labels out once the style and the tiles are actually there.
-    opts.atlas.map.on("load", invalidate);
+    // Readiness is a one-time fact, not a per-frame condition: `loaded()` is
+    // true only when every source has finished fetching, so gating on it froze
+    // the labels for the whole of any flight into fresh tiles.
+    opts.atlas.map.on("load", () => {
+      this.ready = true;
+      this.schedule();
+    });
+    // A camera restored from a link never moves, so nothing else would fire.
     opts.atlas.map.on("idle", invalidate);
 
     this.schedule();
@@ -185,11 +191,10 @@ export class Beacons {
   }
 
   private layout(): void {
+    // Nothing can be projected before the style exists; after that, labels must
+    // track every frame regardless of whether tiles are still streaming.
+    if (!this.ready) return;
     const map = this.opts.atlas.map;
-    // Too early to project anything meaningful; the load and idle handlers will
-    // bring us back once there is a map to place labels on.
-    if (!map.loaded()) return;
-
     if (!this.enabled) return;
 
     const zoom = map.getZoom();
