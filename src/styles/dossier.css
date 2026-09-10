@@ -12,6 +12,11 @@
   border-left: 1px solid var(--line);
   background: linear-gradient(to left, rgba(9, 12, 15, 0.96), rgba(9, 12, 15, 0.9));
   backdrop-filter: blur(22px) saturate(1.08);
+  /* Off-screen is not the same as out of reach: a translated panel keeps its
+     controls in the tab order, so keyboard focus would disappear into an
+     invisible column. The closed state is made inert in JS (see syncPanel) —
+     `visibility` cannot do it here, because it is a discrete property whose
+     transition never completes, which left the panel visible after closing. */
   transform: translateX(101%);
   transition: transform var(--dur-3) var(--ease-out);
 }

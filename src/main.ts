@@ -296,7 +296,11 @@ function syncPanel(state: AppSnapshot): void {
   app.dataset.mode = state.story ? "tour" : "wander";
   app.dataset.photo = String(state.photo);
   const dossierEl = must("#dossier");
-  dossierEl.setAttribute("aria-hidden", String(state.view.kind === "city"));
+  const closed = state.view.kind === "city";
+  dossierEl.setAttribute("aria-hidden", String(closed));
+  // `inert` is what actually takes the closed panel out of the tab order and
+  // the accessibility tree; aria-hidden alone leaves its controls focusable.
+  dossierEl.toggleAttribute("inert", closed);
   if (compact()) app.dataset.sheet = state.view.kind === "city" ? store.get().sheet : "peek";
 }
 
@@ -653,7 +657,21 @@ async function boot(): Promise<void> {
   player.setPlaying(true);
   if (compact()) app.dataset.sheet = store.get().sheet;
 
+  // A spinner with no ceiling is a dead end: if the style or its tiles are slow
+  // to arrive, retire the overlay anyway and say so, then carry on when the map
+  // is genuinely ready. The map paints whenever it can either way.
+  const loadingEl = must("#loading");
+  const clearLoading = (): void => loadingEl.classList.add("is-done");
+  let styleReady = false;
+  const ceiling = window.setTimeout(() => {
+    if (styleReady) return;
+    clearLoading();
+    toasts.show("Map data is still arriving — the city will fill in", { key: "…", timeout: 6000 });
+  }, 12000);
+
   await atlas.ready;
+  styleReady = true;
+  window.clearTimeout(ceiling);
   stage("style");
   plates.install();
   plates.setVisible(false);
@@ -686,7 +704,7 @@ async function boot(): Promise<void> {
 
   await atlas.idle();
   stage("idle");
-  must("#loading").classList.add("is-done");
+  clearLoading();
 
   // The opening move: hold the whole peninsula while the title sits over it,
   // then descend into the streets where the model has real density. Two beats
