@@ -3,3 +3,6 @@ dist/
 .DS_Store
 *.local
 .vite/
+
+# Large promo renders, not part of the app
+promo/

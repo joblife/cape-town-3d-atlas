@@ -220,6 +220,32 @@ export class CinematicCamera {
     }
   }
 
+  /**
+   * A slow drift while a story beat is being read.
+   *
+   * Without it the camera parks for the whole hold — fifteen to twenty seconds
+   * of a completely static frame between two-second flights, which reads as a
+   * slideshow rather than a guided tour. The movement is deliberately small
+   * (a couple of degrees and a slight push) so it registers as life rather than
+   * as a camera move competing with the narration.
+   *
+   * Finishes before the hold does, so the next flight always starts from rest.
+   */
+  drift(durationMs: number, bearingDeg: number, zoomDelta: number): void {
+    if (prefersReducedMotion()) return;
+    const map = this.deps.map;
+    if (map.isMoving()) return;
+    const from = this.snapshot();
+    map.easeTo({
+      bearing: from.bearing + bearingDeg,
+      zoom: from.zoom + zoomDelta,
+      duration: Math.max(600, durationMs),
+      // Linear: a constant, barely perceptible creep, not a move with a start
+      // and an end.
+      easing: (t) => t,
+    });
+  }
+
   /** A slow unbroken orbit, for the opening and for idle moments. */
   async orbit(seconds: number, degrees = 26): Promise<void> {
     if (prefersReducedMotion()) return;

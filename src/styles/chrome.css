@@ -243,6 +243,23 @@
   background: rgba(4, 6, 8, 0.62);
   backdrop-filter: blur(3px);
 }
+
+/*
+ * The light control is the one dialog that must not dim what it acts on: the
+ * whole point of scrubbing the clock is watching the city change, and a 62%
+ * scrim over the map hides exactly that. It keeps a dialog for focus handling
+ * but drops the backdrop and docks to the right, leaving the city in the clear.
+ */
+.sheet-dialog--light::backdrop {
+  background: transparent;
+  backdrop-filter: none;
+}
+@media (min-width: 1025px) {
+  .sheet-dialog--light {
+    margin: auto var(--pad) auto auto;
+    max-height: min(84vh, 760px);
+  }
+}
 .sheet-dialog[open] { animation: dialog-in var(--dur-2) var(--ease-out) both; }
 @keyframes dialog-in {
   from { opacity: 0; transform: translateY(10px) scale(0.985); }

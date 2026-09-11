@@ -211,6 +211,10 @@ export class StoryPlayer {
       if (token !== this.token) return;
 
       // Hold while the narration reads, reporting progress for the player bar.
+      // A gentle drift keeps the frame alive across a long hold; it is given a
+      // little less time than the hold so it is always at rest before the next
+      // flight begins.
+      this.atlas.camera.drift((beat.hold - 0.5) * 1000, driftFor(i), 0.18);
       const held = await this.hold(beat.hold, token, i);
       if (!held) return;
     }
@@ -254,5 +258,12 @@ export class StoryPlayer {
  *  do not all rotate the same way, which is what makes a tour feel mechanical. */
 function swingFor(index: number): number {
   const pattern = [16, -20, 13, -16, 22, -12, 18];
+  return pattern[index % pattern.length];
+}
+
+/** Direction of the slow drift during a hold, varied so consecutive stops do
+ *  not all creep the same way. */
+function driftFor(index: number): number {
+  const pattern = [4.0, -3.4, 4.6, -4.0, 3.0, -4.4];
   return pattern[index % pattern.length];
 }
