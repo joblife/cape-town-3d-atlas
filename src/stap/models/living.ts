@@ -67,8 +67,11 @@ function boKaap(): LandmarkModel {
 
       k.add(k.box(HOUSE_D, h, HOUSE_W, paint), x, t + h / 2, z);
       // A pitched roof riding the lane, so the row reads as terraced houses and
-      // the ridge line steps with the terraces.
-      k.gable(HOUSE_W, HOUSE_D, 2.8, ROOFS[(i + (s > 0 ? 1 : 0)) % ROOFS.length], x, t + h, z, Math.PI / 2);
+      // the ridge line steps with the terraces. It is set in from the walls by a
+      // verge, which is how the paint of every house stays visible from the air:
+      // a coloured border around every grey or terracotta roof is what makes the
+      // quarter read as the painted quarter and not as a row of sheds.
+      k.gable(HOUSE_W - 2.4, HOUSE_D - 1.8, 2.8, ROOFS[(i + (s > 0 ? 1 : 0)) % ROOFS.length], x, t + h, z, Math.PI / 2);
 
       // Two storeys of windows facing the lane, and a door at the stoep.
       const front = k.facade(HOUSE_W * 0.74, h * 0.66, 2, 2, paint, GLASS, s * FACE, z, s > 0 ? -Math.PI / 2 : Math.PI / 2);
@@ -317,7 +320,7 @@ function greenmarketSquare(): LandmarkModel {
     k.add(k.ball(0.35, 0xf6f1e4, 8, 6), lx, 4.4, lz);
   }
 
-  return { group: k.group, radius: 52, height: 21 };
+  return { group: k.group, radius: 54, height: 21 };
 }
 
 /**

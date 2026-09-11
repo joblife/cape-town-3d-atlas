@@ -145,17 +145,37 @@ export class GlobeWalk {
     this.sync();
   }
 
-  /** Stand away from a point at a given distance, looking at it. */
-  standOff(lon: number, lat: number, distance: number, bearing = 0): void {
+  /**
+   * Stand a little way off a point and face it.
+   *
+   * The standoff walks *back along the same great circle the landmark lies on*,
+   * toward the globe's axis — not along an arbitrary tangent. That matters more
+   * than it sounds: stepping off sideways lands the walker on the far side of
+   * the city from the place they asked to see, and distances of a kilometre are
+   * easy to accumulate on a world this size. Going back along the radial means
+   * the walker stays between the landmark and the city centre, so the city is
+   * always behind the thing being looked at.
+   */
+  standOff(lon: number, lat: number, distance: number, lift = 0): void {
     const target = surfaceNormal(lon, lat);
-    const back = tangentFor(target, bearing);
-    // Step back along the tangent, then re-normalise onto the sphere.
-    this.pivot.copy(target).addScaledVector(back, -distance / this.radius).normalize();
+    // The great circle through `target` and the pole is the mapping's own radial,
+    // so the axis of that rotation is target × pole.
+    this.axis.crossVectors(target, new THREE.Vector3(0, 1, 0));
+    if (this.axis.lengthSq() < 1e-6) this.axis.set(1, 0, 0);
+    this.axis.normalize();
+
+    const back = distance / this.radius;
+    this.pivot.copy(target).applyAxisAngle(this.axis, back).normalize();
     this.up.copy(this.pivot);
+
+    // Face the landmark.
     this.forward.copy(target).addScaledVector(this.up, -target.dot(this.up)).normalize();
-    this.wantedHeight = clamp(Math.max(24, distance * 0.34), MIN_HEIGHT, MAX_HEIGHT);
+
+    // Eye height scales with how far back we stand, so a wide standoff also
+    // lifts the view rather than staring at the ground.
+    this.wantedHeight = clamp(Math.max(60, distance * 0.5) + lift, MIN_HEIGHT, MAX_HEIGHT);
     this.height = this.wantedHeight;
-    this.wantedPitch = -0.28;
+    this.wantedPitch = -0.34;
     this.pitch = this.wantedPitch;
     this.sync();
   }

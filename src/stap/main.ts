@@ -251,7 +251,7 @@ async function boot(): Promise<void> {
       card.close();
       walk.setEnabled(true);
       const ll = directionToLonLat(onGlobe(l));
-      walk.standOff(ll.lon, ll.lat, 300, 0.5);
+      walk.standOff(ll.lon, ll.lat, 210, 0);
       toast(toastEl, `Looking at ${l.place.short}`, l.stamp);
     },
   });
@@ -262,7 +262,7 @@ async function boot(): Promise<void> {
       notebookPanel.close();
       walk.setEnabled(true);
       const ll = directionToLonLat(onGlobe(l));
-      walk.standOff(ll.lon, ll.lat, 300, 0.5);
+      walk.standOff(ll.lon, ll.lat, 210, 0);
     },
     onClose: () => {
       notebookPanel.close();
@@ -280,7 +280,7 @@ async function boot(): Promise<void> {
       indexPanel.close();
       walk.setEnabled(true);
       const ll = directionToLonLat(onGlobe(l));
-      walk.standOff(ll.lon, ll.lat, 280, 0.5);
+      walk.standOff(ll.lon, ll.lat, 200, 0);
       toast(toastEl, `Standing at ${l.place.short}`, l.stamp);
     },
     onClose: () => {
