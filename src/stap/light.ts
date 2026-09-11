@@ -63,7 +63,7 @@ export function applyLight(light: StapLight, date: Date, focus: { x: number; z: 
   light.grade = grade;
 
   const up = state.altitude > 0;
-  const [radial, azimuth, polar] = lightPosition(state.azimuth, state.altitude);
+  const [, azimuth, polar] = lightPosition(state.azimuth, state.altitude);
 
   // three.js wants a direction vector, not polar coordinates: rebuild the sun's
   // position from the same numbers the map uses.
@@ -83,16 +83,20 @@ export function applyLight(light: StapLight, date: Date, focus: { x: number; z: 
   // three.js has no notion of a sun below the horizon; at night the sun's
   // contribution drops to a trace and the hemisphere does the work, which is
   // what makes a lit street read as dark but not black.
-  light.sun.intensity = up ? grade.lightIntensity * 3.4 : 0.3;
+  // Light levels are chosen so a surface lands where its colour says it should.
+  // With tone mapping off there is no highlight roll-off, so anything summing
+  // above 1.0 clips to white — which is what washed the palette out. Sun plus
+  // hemisphere plus ambient now total a little over 1 on a fully lit face and
+  // about a third in shadow, which reads as bright midday without bleaching.
+  light.sun.intensity = up ? grade.lightIntensity * 1.3 : 0.16;
   light.sun.castShadow = state.altitude > 0.5;
 
   light.sky.color.copy(hex(grade.sky));
   light.sky.groundColor.copy(hex(grade.surfaces.land));
-  light.sky.intensity = up ? 0.4 + grade.lightIntensity * 0.3 : 0.42;
+  light.sky.intensity = up ? 0.34 : 0.3;
 
   light.ambient.color.copy(hex(grade.surfaces.land));
-  light.ambient.intensity = up ? 0.14 : 0.38;
-  void radial;
+  light.ambient.intensity = up ? 0.1 : 0.22;
 }
 
 export interface Getters {
@@ -105,6 +109,7 @@ export interface Getters {
   walls: Map<string, THREE.Mesh>;
   roofs: THREE.Mesh;
   trees?: THREE.Object3D;
+  markings?: THREE.Mesh;
 }
 
 /**
@@ -116,37 +121,53 @@ export interface Getters {
  * city reads as one flat plane. So the palette is re-derived here — the hue
  * relationships survive, the contrast and saturation do not.
  */
-function materialsFor(grade: Grade, kind: BuildingKindName): number {
-  const { surfaces } = grade;
-  switch (kind) {
-    case "ground":
-      // Ground well below the buildings, so mass separates from the street.
-      // Taken further than the walk's version: seen from planet distance the
-      // city is small, and the ground and the buildings have to separate at a
-      // glance or the whole thing reads as one tan mass.
-      return mixHexToInt(surfaces.urban, "#2f3a2c", 0.62);
-    case "road":
-      return mixHexToInt(surfaces.road, "#4d5148", 0.5);
-    case "green":
-      return mixHexToInt(surfaces.grass, "#2f5c2a", 0.35);
-    case "water":
-      return mixHexToInt(surfaces.water, "#14506e", 0.3);
-    case "residential":
-      return mixHexToInt(surfaces.buildingLo, "#ffffff", 0.12);
-    case "commercial":
-      return mixHexToInt(surfaces.buildingMid, "#ffffff", 0.1);
-    case "civic":
-    case "worship":
-      return mixHexToInt(surfaces.buildingLo, "#fff6e2", 0.2);
-    case "industrial":
-      return mixHexToInt(surfaces.buildingMid, "#c9c3b4", 0.2);
-    case "minor":
-      return mixHexToInt(surfaces.buildingMid, "#b9b4a8", 0.2);
-    default:
-      return mixHexToInt(surfaces.buildingMid, "#ffffff", 0.06);
-  }
+/**
+ * The palette, in the reference's register.
+ *
+ * Deliberately not the atlas's palette. The two products are answering
+ * different questions: the atlas is a survey instrument and its colours are
+ * muted so that data reads through them; this is a toy city, and its colours are
+ * there to be enjoyed. The atlas tokens live on in the chrome of the atlas, not
+ * here.
+ *
+ * Times of day still move these — a warm evening should warm the roofs and the
+ * streets, not leave them the same colour at midnight — so the base tones below
+ * are modulated by the solar grade rather than replacing it.
+ */
+const PALETTE = {
+  /** Grass, verges, parks. */
+  green: "#8cc44f",
+  greenDeep: "#6ba33c",
+  /** Streets: a dark warm grey, the only dark thing in the picture. */
+  asphalt: "#3f4550",
+  /** The ground under everything else: mown grass in the plan's gaps. */
+  earth: "#9fc35c",
+  /** Building walls, by kind. */
+  wallLo: "#fdf6e6",
+  wallMid: "#f6e2bd",
+  wallHigh: "#e8c99b",
+  wallCivic: "#fdfaf0",
+  wallWorship: "#fbf3e2",
+  /** Roofs run the warm range, which is what makes a block of buildings read. */
+  roofWarm: "#d9714f",
+  roofPale: "#e8a97c",
+  roofSlate: "#9aa3ad",
+  /** Water. */
+  water: "#3aa0e0",
+  waterEdge: "#8fd0ef",
+  /** Markings and any painted surface. */
+  paint: "#fffefa",
+  /** Trees. */
+  foliage: "#3f8f33",
+  foliageDeep: "#2f6f27",
+} as const;
+
+/** Blend two hex colours and return a three.js-ready integer. */
+function mixHexToInt(a: string, b: string, t: number): number {
+  return new THREE.Color(a).lerp(new THREE.Color(b), t).getHex();
 }
 
+/** The building kinds the palette distinguishes. */
 type BuildingKindName =
   | "ground"
   | "road"
@@ -160,11 +181,42 @@ type BuildingKindName =
   | "minor"
   | "general";
 
-/** Blend two hex colours and return a three.js-ready integer. */
-function mixHexToInt(a: string, b: string, t: number): number {
-  const pa = new THREE.Color(a);
-  const pb = new THREE.Color(b);
-  return pa.lerp(pb, t).getHex();
+/** Darken toward the night palette as the sun drops. */
+function nightMix(grade: Grade): number {
+  return Math.max(0, Math.min(1, 1 - grade.lightIntensity / 0.72));
+}
+
+function materialsFor(grade: Grade, kind: BuildingKindName): number {
+  const night = nightMix(grade);
+
+  // Every surface is its daytime colour, darkened toward a cool night tone.
+  const at = (day: string): number => mixHexToInt(day, "#1d2740", night * 0.72);
+
+  switch (kind) {
+    case "ground":
+      // Slightly deeper than the parks so blocks and verges separate in plan.
+      return at(PALETTE.earth);
+    case "road":
+      return at(PALETTE.asphalt);
+    case "green":
+      return at(PALETTE.green);
+    case "water":
+      return at(PALETTE.water);
+    case "residential":
+      return at(PALETTE.wallLo);
+    case "general":
+      return at(PALETTE.wallMid);
+    case "commercial":
+      return at(PALETTE.wallHigh);
+    case "civic":
+      return at(PALETTE.wallCivic);
+    case "worship":
+      return at(PALETTE.wallWorship);
+    case "industrial":
+      return at("#dfd6cb");
+    default:
+      return at(PALETTE.wallMid);
+  }
 }
 
 /** Repaint every surface from the current grade. */
@@ -186,19 +238,23 @@ export function paintCity(light: StapLight, objects: Getters): void {
   set(objects.water, materialsFor(grade, "water"), Math.max(0.82, grade.waterOpacity));
   // Roof caps pick up whatever light is going, and give the blocks a bright top
   // edge from above — which is most of what makes a toy city legible.
-  set(objects.roofs, mixHexToInt(grade.surfaces.sand, "#ffffff", 0.3), 0.34);
+  // The building shells carry the roof colours in their vertex colours; this
+  // cap only deepens the read from above.
+  set(objects.roofs, mixHexToInt(PALETTE.roofWarm, "#ffffff", 0.15), 0.16);
+  set(objects.markings, mixHexToInt(PALETTE.paint, "#8892a0", nightMix(grade) * 0.6));
   if (objects.trees) {
-    // Canopies stay green by day and cool off with the light, like everything else.
     const canopy = (objects.trees as THREE.InstancedMesh).material as THREE.MeshLambertMaterial;
-    canopy.color.setHex(mixHexToInt(grade.surfaces.forest, "#2f5c2a", 0.4));
+    canopy.color.setHex(mixHexToInt(PALETTE.foliage, "#1d2740", nightMix(grade) * 0.72));
   }
 
   for (const [kind, mesh] of objects.walls as Map<string, THREE.Mesh>) {
     set(mesh, materialsFor(grade, kind as BuildingKindName));
   }
 
-  objects.scene.background = hex(grade.sky);
-  // Fog is a framing tool here, not a constant: across the whole core it should
-  // barely register, or a light sky colour washes the city to grey.
-  objects.scene.fog = new THREE.Fog(hex(grade.fog).getHex(), 400, 3400);
+  // A flat sky, in the reference's register, warmed and cooled by the hour
+  // rather than swapped for a photograph. Fog is barely there: the horizon of a
+  // diorama should be crisp.
+  const sky = mixHexToInt("#c9eaf8", "#16224a", nightMix(grade) * 0.85);
+  objects.scene.background = new THREE.Color(sky);
+  objects.scene.fog = new THREE.Fog(sky, 2600, 7200);
 }

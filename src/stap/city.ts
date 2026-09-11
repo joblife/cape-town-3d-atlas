@@ -55,6 +55,8 @@ export interface BakedWorld {
 export interface CitySurfaces {
   /** Instanced canopies on parks and along the wider streets. */
   trees: THREE.InstancedMesh;
+  /** Painted lane markings, for the reference's dashed-road look. */
+  markings: THREE.Mesh;
   /** Feet of the walkable city, in the same local metres. */
   ground: THREE.Mesh;
   roads: THREE.Mesh;
@@ -209,13 +211,17 @@ function extrudeKind(
     // which is what stops a terrace reading as one long slab.
     const warm = hash(bi * 3.7);
     const wall = [
-      0.94 + warm * 0.06,
-      0.9 + warm * 0.06 - (1 - warm) * 0.06,
-      0.84 + warm * 0.04 - (1 - warm) * 0.1,
+      0.96 + warm * 0.04,
+      0.93 + warm * 0.04 - (1 - warm) * 0.05,
+      0.88 + warm * 0.03 - (1 - warm) * 0.08,
     ];
-    // Terracotta through sand to slate: the range is wide on purpose, because
-    // this is the main thing separating one building from the next.
-    const roof = [0.5 + roofTone * 0.5, 0.28 + roofTone * 0.42, 0.2 + roofTone * 0.4];
+    // Terracotta through sand to pale clay, plus an occasional slate. The range
+    // is wide on purpose: in plan the roof is most of what you see of a
+    // building, so roof colour is what separates one from the next.
+    const slate = r > 0.88;
+    const roof = slate
+      ? [0.6 + roofTone * 0.2, 0.64 + roofTone * 0.2, 0.68 + roofTone * 0.2]
+      : [0.72 + roofTone * 0.28, 0.42 + roofTone * 0.36, 0.3 + roofTone * 0.3];
 
     // Walls: one quad per edge, shaded from foot to eaves.
     for (let i = 0; i < n; i++) {
@@ -259,6 +265,71 @@ function extrudeKind(
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colours, 3));
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
+  return geometry;
+}
+
+/**
+ * Lane markings: the dashed centre line down each street.
+ *
+ * The single strongest signal that a dark ribbon is a road rather than a gap
+ * between buildings. Only the wider streets get one — marking every residential
+ * stub would turn the plan into hatching — and the dashes are emitted as short
+ * quads rather than a line so they hold a constant width in plan at any pitch.
+ */
+function markingsGeometry(roads: BakedRoad[], y: number, project: Projector = FLAT): THREE.BufferGeometry {
+  const positions: number[] = [];
+  const v = new THREE.Vector3();
+  const push = (x: number, z: number): void => {
+    project(x, z, y, v);
+    positions.push(v.x, v.y, v.z);
+  };
+
+  const DASH = 5;      // metres of paint
+  const GAP = 6;       // metres between
+  const HALF_WIDTH = 0.22;
+
+  for (const road of roads) {
+    if (road.w < 6.5) continue; // only the streets wide enough to be marked
+    const p = road.p;
+    let carried = 0;
+    for (let i = 0; i < p.length - 2; i += 2) {
+      const ax = p[i];
+      const az = p[i + 1];
+      const bx = p[i + 2];
+      const bz = p[i + 3];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const len = Math.hypot(dx, dz);
+      if (len < 0.05) continue;
+      const ux = dx / len;
+      const uz = dz / len;
+      // Perpendicular for the dash's width.
+      const nx = -uz * HALF_WIDTH;
+      const nz = ux * HALF_WIDTH;
+
+      let t = carried;
+      while (t < len) {
+        const dashEnd = Math.min(len, t + DASH);
+        const x1 = ax + ux * t;
+        const z1 = az + uz * t;
+        const x2 = ax + ux * dashEnd;
+        const z2 = az + uz * dashEnd;
+        push(x1 + nx, z1 + nz);
+        push(x2 + nx, z2 + nz);
+        push(x2 - nx, z2 - nz);
+        push(x1 + nx, z1 + nz);
+        push(x2 - nx, z2 - nz);
+        push(x1 - nx, z1 - nz);
+        t = dashEnd + GAP;
+      }
+      // Carry the remainder onto the next segment so dashes run continuously
+      // through a corner instead of restarting at every vertex.
+      carried = Math.max(0, t - len);
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   return geometry;
 }
 
@@ -372,7 +443,12 @@ export function buildCity(world: BakedWorld, options: BuildOptions = {}): CitySu
 
   const trees = options.planetRadius ? treesOnPlanet(world, y, options.planetRadius) : treesFor(world, y);
 
-  return { ground, roads, green, water, walls, roofs, trees };
+  const markings = new THREE.Mesh(
+    markingsGeometry(world.roads, y + 0.05, project),
+    new THREE.MeshBasicMaterial({ color: 0xfffefa, transparent: true, opacity: 0.92 }),
+  );
+
+  return { ground, roads, green, water, walls, roofs, trees, markings };
 }
 
 /**
@@ -446,6 +522,7 @@ export function cityObjects(surfaces: CitySurfaces): THREE.Object3D[] {
     surfaces.green,
     surfaces.water,
     surfaces.trees,
+    surfaces.markings,
     ...surfaces.walls.values(),
     surfaces.roofs,
   ];
