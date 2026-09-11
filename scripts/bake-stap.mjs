@@ -111,6 +111,81 @@ function toRadians(d) {
 }
 
 /**
+ * Clipping to the box.
+ *
+ * Overpass returns whole ways that *intersect* the query box, not just the parts
+ * inside it, so a road grazing one corner arrives with vertices kilometres
+ * beyond it. Left in, those outliers wreck anything that reasons about the city's
+ * extent — the densest-street search picked a vertex four kilometres outside the
+ * map and the walk spawned in empty veld, five and a half kilometres from the
+ * nearest landmark.
+ *
+ * Sutherland–Hodgman, which is exact for a convex clip region; a rectangle is
+ * the easiest convex region there is.
+ */
+function clipRing(points, box) {
+  const edges = [
+    { inside: (p) => p[0] >= box.west, cross: (a, b, out) => intersectLon(a, b, box.west, out) },
+    { inside: (p) => p[0] <= box.east, cross: (a, b, out) => intersectLon(a, b, box.east, out) },
+    { inside: (p) => p[1] >= box.south, cross: (a, b, out) => intersectLat(a, b, box.south, out) },
+    { inside: (p) => p[1] <= box.north, cross: (a, b, out) => intersectLat(a, b, box.north, out) },
+  ];
+  let ring = points;
+  for (const edge of edges) {
+    const out = [];
+    for (let i = 0; i < ring.length; i++) {
+      const current = ring[i];
+      const previous = ring[(i + ring.length - 1) % ring.length];
+      const currentIn = edge.inside(current);
+      const previousIn = edge.inside(previous);
+      if (currentIn) {
+        if (!previousIn) out.push(edge.cross(previous, current, []));
+        out.push(current);
+      } else if (previousIn) {
+        out.push(edge.cross(previous, current, []));
+      }
+    }
+    ring = out;
+    if (ring.length === 0) return [];
+  }
+  return ring;
+}
+
+function intersectLon(a, b, lon, out) {
+  const t = (lon - a[0]) / (b[0] - a[0]);
+  out[0] = lon;
+  out[1] = a[1] + (b[1] - a[1]) * t;
+  return out;
+}
+
+function intersectLat(a, b, lat, out) {
+  const t = (lat - a[1]) / (b[1] - a[1]);
+  out[0] = a[0] + (b[0] - a[0]) * t;
+  out[1] = lat;
+  return out;
+}
+
+/** Split a polyline into the runs of consecutive points inside the box. */
+function clipLine(points, box) {
+  const runs = [];
+  let run = [];
+  for (const point of points) {
+    const inside =
+      point[0] >= box.west && point[0] <= box.east && point[1] >= box.south && point[1] <= box.north;
+    if (inside) {
+      run.push(point);
+    } else if (run.length >= 2) {
+      runs.push(run);
+      run = [];
+    } else {
+      run = [];
+    }
+  }
+  if (run.length >= 2) runs.push(run);
+  return runs;
+}
+
+/**
  * Local metre plane centred on the walkable area. The scene is small enough that
  * a tangent plane is indistinguishable from a projection, and it means the 3D
  * engine never has to think in degrees.
@@ -147,7 +222,10 @@ out tags geom;`);
   for (const el of buildingsRaw.elements) {
     const geom = el.geometry;
     if (!geom || geom.length < 3) continue;
-    const footprint = geom.map((p) => project(p.lat, p.lon));
+    const clipped = clipRing(geom.map((p) => [p.lon, p.lat]), BBOX);
+    if (clipped.length < 3) continue;
+    // Round-trip through the original shape so `project` still sees lat/lon.
+    const footprint = clipped.map(([lon, lat]) => project(lat, lon));
     // Drop anything degenerate; a zero-area footprint is a rendering artefact.
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
     for (const [x, z] of footprint) {
@@ -183,11 +261,14 @@ out tags geom;`);
     const tags = el.tags || {};
     const cls = tags.highway;
     if (["proposed", "construction", "raceway", "bus_guideway"].includes(cls)) continue;
-    roads.push({
-      p: geom.map((p) => project(p.lat, p.lon)).flat(),
-      w: cls === "primary" || cls === "secondary" || cls === "trunk" ? 120 : cls === "tertiary" ? 90 : cls === "residential" ? 70 : 40,
-      ...(tags.name ? { n: tags.name.slice(0, 40) } : {}),
-    });
+    const width = cls === "primary" || cls === "secondary" || cls === "trunk" ? 120 : cls === "tertiary" ? 90 : cls === "residential" ? 70 : 40;
+    for (const run of clipLine(geom.map((p) => [p.lon, p.lat]), BBOX)) {
+      roads.push({
+        p: run.map(([lon, lat]) => project(lat, lon)).flat(),
+        w: width,
+        ...(tags.name ? { n: tags.name.slice(0, 40) } : {}),
+      });
+    }
   }
   console.log(`  ${roads.length} street segments`);
 
@@ -202,7 +283,9 @@ out tags geom;`);
   const green = [];
   for (const el of greenRaw.elements) {
     if (!el.geometry || el.geometry.length < 4) continue;
-    green.push({ p: el.geometry.map((p) => project(p.lat, p.lon)).flat() });
+    const clipped = clipRing(el.geometry.map((p) => [p.lon, p.lat]), BBOX);
+    if (clipped.length < 3) continue;
+    green.push({ p: clipped.map(([lon, lat]) => project(lat, lon)).flat() });
   }
   console.log(`  ${green.length} green areas`);
 
@@ -212,7 +295,9 @@ out tags geom;`);
   const water = [];
   for (const el of waterRaw.elements) {
     if (!el.geometry || el.geometry.length < 4) continue;
-    water.push({ p: el.geometry.map((p) => project(p.lat, p.lon)).flat() });
+    const clipped = clipRing(el.geometry.map((p) => [p.lon, p.lat]), BBOX);
+    if (clipped.length < 3) continue;
+    water.push({ p: clipped.map(([lon, lat]) => project(lat, lon)).flat() });
   }
   console.log(`  ${water.length} water areas`);
 

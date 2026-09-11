@@ -9,6 +9,7 @@
  */
 
 import * as THREE from "three";
+import { clamp } from "../util/dom.ts";
 import type { BakedWorld } from "./city.ts";
 
 /** Eye height above the ground, in metres. */
@@ -35,6 +36,14 @@ export interface WalkerState {
   pitch: number;
   moving: boolean;
   running: boolean;
+  /**
+   * Ground speed in metres per second, eased toward the wanted speed.
+   *
+   * Instant velocity is the other half of why walking felt wrong: a walker that
+   * is at full pace on the first frame and stopped dead on the last has no
+   * weight, and no gait animation can be driven convincingly from it.
+   */
+  speed: number;
 }
 
 export class Walker {
@@ -48,10 +57,19 @@ export class Walker {
   private drag = { active: false, x: 0, y: 0 };
   private headBob = 0;
   private enabled = true;
+  private thirdPerson = true;
 
   constructor(camera: THREE.PerspectiveCamera, world: BakedWorld, start: { x: number; z: number; yaw?: number }) {
     this.camera = camera;
-    this.state = { x: start.x, z: start.z, yaw: start.yaw ?? 0, pitch: -0.04, moving: false, running: false };
+    this.state = {
+      x: start.x,
+      z: start.z,
+      yaw: start.yaw ?? 0,
+      pitch: -0.04,
+      moving: false,
+      running: false,
+      speed: 0,
+    };
 
     // Collect bounding boxes and index them into a coarse grid.
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
@@ -133,6 +151,27 @@ export class Walker {
         }
       }
       if (!moved) return;
+    }
+
+    // Still stuck after pushing out of each box in turn. That happens where
+    // buildings crowd together — the Castle's outbuildings, say — and being
+    // pushed clear of one lands you inside the next. Search outward for a spot
+    // that is genuinely free rather than leaving the walker wedged, where every
+    // direction is blocked and the walk appears broken.
+    const s = this.state;
+    for (let ring = 1; ring <= 14; ring++) {
+      const step = ring * 2.5;
+      const samples = 8 + ring * 4;
+      for (let i = 0; i < samples; i++) {
+        const angle = (i / samples) * Math.PI * 2;
+        const x = s.x + Math.cos(angle) * step;
+        const z = s.z + Math.sin(angle) * step;
+        if (!this.blockedAt(x, z)) {
+          s.x = x;
+          s.z = z;
+          return;
+        }
+      }
     }
   }
 
@@ -288,15 +327,24 @@ export class Walker {
     const moving = forward !== 0 || strafe !== 0;
     s.moving = moving;
 
+    // Ease toward the wanted speed rather than snapping to it. Acceleration is
+    // quicker than deceleration, which is how a person actually moves.
+    const wanted = moving ? (s.running ? RUN : WALK) : 0;
+    const rate = wanted > s.speed ? 9 : 7;
+    s.speed += (wanted - s.speed) * Math.min(1, dt * rate);
+    if (s.speed < 0.02) s.speed = 0;
+
     if (moving) {
       const len = Math.hypot(forward, strafe);
-      const speed = (s.running ? RUN : WALK) * dt;
       // Yaw is measured from +Z, so forward is (sin, cos).
       const dirX = (Math.sin(s.yaw) * forward + Math.cos(s.yaw) * strafe) / len;
       const dirZ = (Math.cos(s.yaw) * forward - Math.sin(s.yaw) * strafe) / len;
+      const step = s.speed * dt;
 
-      this.moveBy(dirX * speed, 0);
-      this.moveBy(0, dirZ * speed);
+      // Move one axis at a time so an obstacle on x does not cancel motion on z:
+      // sliding along a wall instead of sticking to it.
+      this.moveBy(dirX * step, 0);
+      this.moveBy(0, dirZ * step);
 
       // A small bob, scaled by pace, so walking has weight.
       this.headBob += dt * (s.running ? 13 : 8);
@@ -339,13 +387,81 @@ export class Walker {
     }
   }
 
+  /**
+   * Aim the camera.
+   *
+   * In first person the camera is the head. In third person it sits behind and
+   * above the figure on an orbit controlled by pitch — which is what makes the
+   * city legible: you can see the figure, and therefore see the scale and the
+   * pace, instead of a wall sliding past at eye height.
+   */
   private sync(): void {
     const s = this.state;
+    this.camera.rotation.order = "YXZ";
+
+    if (this.thirdPerson) {
+      const bob = this.headBob === 0 ? 0 : Math.sin(this.headBob) * 0.02;
+      // Elevation from pitch: more downward pitch lifts the camera and looks
+      // down on the figure.
+      const elevation = clamp(0.26 - s.pitch, 0.02, 1.15);
+      const distance = 5.2;
+      const horizontal = distance * Math.cos(elevation);
+      const vertical = distance * Math.sin(elevation);
+
+      const targetX = s.x;
+      const targetZ = s.z;
+      const targetY = 1.3 + bob;
+
+      // Seen from directly behind, a walk shows almost nothing: the legs swing
+      // fore and aft, which is exactly the axis pointing away from the viewer.
+      // Swinging the camera round to a three-quarter angle puts the stride
+      // across the frame, where it reads.
+      const OFFSET = 0.42; // radians, about 24°
+      const camYaw = s.yaw + OFFSET;
+      const behindX = Math.sin(camYaw);
+      const behindZ = Math.cos(camYaw);
+
+      const desiredX = targetX - behindX * horizontal;
+      const desiredZ = targetZ - behindZ * horizontal;
+      const desiredY = Math.max(0.55, targetY + vertical - 1.35 + 1.35);
+
+      // Pull the camera in if the place it wants to be is inside a building.
+      // Without this, standing with your back to a wall puts the camera inside
+      // the wall and the view becomes the inside of a box.
+      let reach = 1;
+      for (let step = 1; step <= 8; step++) {
+        const t = step / 8;
+        const px = targetX + (desiredX - targetX) * t;
+        const pz = targetZ + (desiredZ - targetZ) * t;
+        if (this.blockedAt(px, pz)) {
+          reach = Math.max(0.18, (step - 1) / 8);
+          break;
+        }
+      }
+
+      this.camera.position.set(
+        targetX + (desiredX - targetX) * reach,
+        targetY + (desiredY - targetY) * reach,
+        targetZ + (desiredZ - targetZ) * reach,
+      );
+      this.camera.lookAt(targetX, targetY, targetZ);
+      return;
+    }
+
     const bob = this.headBob === 0 ? 0 : Math.sin(this.headBob) * 0.035;
     this.camera.position.set(s.x, EYE + bob, s.z);
-    this.camera.rotation.order = "YXZ";
     this.camera.rotation.y = s.yaw;
     this.camera.rotation.x = s.pitch;
     this.camera.rotation.z = 0;
+  }
+
+  /** First person puts the camera in the head; third person stands it behind. */
+  setThirdPerson(enabled: boolean): void {
+    this.thirdPerson = enabled;
+    this.sync();
+  }
+
+  get isThirdPerson(): boolean {
+    return this.thirdPerson;
   }
 }

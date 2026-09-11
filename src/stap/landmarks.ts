@@ -141,3 +141,51 @@ export function streetNear(world: BakedWorld, x: number, z: number): { x: number
   }
   return best;
 }
+
+/**
+ * The most built-up point on the street network.
+ *
+ * Spawning at the street nearest the bake's centre regularly drops the walker in
+ * the Foreshore or on a harbour edge, where the city thins out and the view is
+ * empty ground — technically correct, and a bad first impression. Scoring every
+ * road vertex by how much building stands near it puts the walk where the city
+ * actually is.
+ */
+export function busiestStreet(
+  world: BakedWorld,
+  radius = 45,
+): { x: number; z: number; neighbours: number } {
+  // Centroids once, so scoring is a cheap distance test rather than a scan of
+  // every footprint for every candidate.
+  const centres: number[] = [];
+  for (const b of world.buildings) {
+    let cx = 0;
+    let cz = 0;
+    for (let i = 0; i < b.f.length; i += 2) {
+      cx += b.f[i];
+      cz += b.f[i + 1];
+    }
+    const n = b.f.length / 2;
+    centres.push(cx / n, cz / n);
+  }
+
+  let best = { x: 0, z: 0, neighbours: -1 };
+  const r2 = radius * radius;
+  // Sampling every eighth vertex is plenty: consecutive vertices are a few
+  // metres apart and the density field is smooth.
+  for (const road of world.roads) {
+    const p = road.p;
+    for (let i = 0; i < p.length; i += 16) {
+      const x = p[i];
+      const z = p[i + 1];
+      let count = 0;
+      for (let c = 0; c < centres.length; c += 2) {
+        const dx = centres[c] - x;
+        const dz = centres[c + 1] - z;
+        if (dx * dx + dz * dz < r2) count++;
+      }
+      if (count > best.neighbours) best = { x, z, neighbours: count };
+    }
+  }
+  return best;
+}

@@ -13,9 +13,10 @@ import "./styles/stap.css";
 import { buildCity, cityObjects, spherical, type BakedWorld, type CitySurfaces } from "./city.ts";
 import { Walker } from "./walker.ts";
 import { applyLight, createLight, paintCity } from "./light.ts";
-import { buildLandmarks, walkableLandmarks, nearestLandmark, streetNear, ARRIVE_RADIUS, type Landmark } from "./landmarks.ts";
+import { buildLandmarks, walkableLandmarks, nearestLandmark, streetNear, busiestStreet, ARRIVE_RADIUS, type Landmark } from "./landmarks.ts";
 import { Notebook } from "./notebook.ts";
 import { Landing, Hud, LandmarkCard, NotebookPanel, LandmarkIndex, toast } from "./ui.ts";
+import { Figure, PALETTES } from "./figure.ts";
 import { COPY } from "./copy.ts";
 import { dateAtSiteMinutes, zonedNow } from "../core/sun.ts";
 import { DISTRICTS } from "../data/index.ts";
@@ -126,19 +127,22 @@ async function boot(): Promise<void> {
   // The walkable world is the baked core. Places beyond it belong to the atlas,
   // and are not pretended to be reachable on foot.
   const allLandmarks = walkableLandmarks(buildLandmarks(world), world);
-  const nearest = allLandmarks.reduce<Landmark | null>((best, l) => {
-    if (!best) return l;
-    return Math.hypot(l.x, l.z) < Math.hypot(best.x, best.z) ? l : best;
-  }, null);
   console.debug(
     `[stap] ${world.meta.counts.buildings} buildings · ${allLandmarks.length} walkable landmarks`,
   );
-  // Start on a street beside the nearest landmark: roads are the one part of
-  // the city guaranteed to be open, so the walk always begins with somewhere to
-  // go.
-  const startOnStreet = nearest ? streetNear(world, nearest.x, nearest.z) : { x: 0, z: 0 };
+  // Start where the city is densest, on a street: a walk that opens onto empty
+  // ground reads as a broken world, however correct the geometry is.
+  const startOnStreet = busiestStreet(world);
+  console.debug(`[stap] spawning at ${Math.round(startOnStreet.x)}, ${Math.round(startOnStreet.z)} — ${startOnStreet.neighbours} buildings within 45 m`);
   const walker = new Walker(camera, world, { x: startOnStreet.x, z: startOnStreet.z, yaw: 2.3 });
   walker.faceOpenDirection();
+
+  // The walker's own figure. Third person by default, because seeing the person
+  // is what makes the city's scale and the pace legible.
+  const player = new Figure(PALETTES[0]);
+  player.setShadow(true);
+  scene.add(player.root);
+  walker.setThirdPerson(true);
   walker.setEnabled(false);
   const detach = walker.attach(renderer.domElement);
 
@@ -156,6 +160,123 @@ async function boot(): Promise<void> {
     cone.userData.landmark = l;
     markerGroup.add(cone);
     markers.set(l.place.id, cone);
+  }
+
+  /* ── pedestrians ────────────────────────────────────────────────── */
+
+  // A handful of figures walking the streets, recycled near the player. They
+  // exist to give the city life and a sense of scale: a person on a pavement is
+  // the clearest reference for how big the buildings are.
+  const PEDESTRIANS = 14;
+  interface Pedestrian {
+    figure: Figure;
+    /** Index into the road currently being walked, and progress along it. */
+    road: number;
+    point: number;
+    dir: 1 | -1;
+    speed: number;
+  }
+
+  const walkable = world.roads.filter((r) => r.p.length >= 4);
+  const pedestrians: Pedestrian[] = [];
+
+  for (let i = 0; i < PEDESTRIANS; i++) {
+    const figure = new Figure(PALETTES[(i + 1) % PALETTES.length]);
+    figure.setShadow(i < 5);
+    figure.setVisible(false);
+    scene.add(figure.root);
+    pedestrians.push({ figure, road: -1, point: 0, dir: 1, speed: 1.1 + Math.random() * 0.6 });
+  }
+
+  /**
+   * Send a pedestrian to a road within sight of the player.
+   *
+   * Sampling the road list at random does not work: with thousands of roads, a
+   * handful of samples lands anywhere in the city, and every pedestrian ends up
+   * hundreds of metres away, hidden and useless. Rejection sampling against a
+   * radius — with the best attempt as a fallback — puts them on the streets
+   * around you, which is where they are worth anything.
+   */
+  function assignRoad(ped: Pedestrian, nearX: number, nearZ: number): void {
+    const WANT = 150; // metres: close enough to see
+    let best = -1;
+    let bestD = Infinity;
+
+    for (let attempt = 0; attempt < 120; attempt++) {
+      const index = Math.floor(Math.random() * walkable.length);
+      const p = walkable[index].p;
+      const at = Math.floor(Math.random() * (p.length / 2)) * 2;
+      const d = Math.hypot(p[at] - nearX, p[at + 1] - nearZ);
+      if (d < WANT) {
+        // Close enough; take it and stop.
+        best = index;
+        bestD = d;
+        break;
+      }
+      if (d < bestD) {
+        bestD = d;
+        best = index;
+      }
+    }
+
+    if (best < 0) return;
+    ped.road = best;
+    const p = walkable[best].p;
+    // Start anywhere along it when it is near, so they do not all line up.
+    const points = p.length / 2;
+    ped.point = bestD < WANT ? Math.floor(Math.random() * points) * 2 : 0;
+    ped.dir = Math.random() < 0.5 ? 1 : -1;
+  }
+
+  function stepPedestrians(dt: number, px: number, pz: number): void {
+    for (const ped of pedestrians) {
+      if (ped.road < 0) assignRoad(ped, px, pz);
+      const p = walkable[ped.road].p;
+      const count = p.length / 2;
+
+      const i = ped.point;
+      const nextI = i + ped.dir * 2;
+      if (nextI < 0 || nextI >= count * 2) {
+        // Turn around at the end of the road, and sometimes strike out for
+        // another street rather than ping-ponging.
+        if (Math.random() < 0.5) {
+          assignRoad(ped, px, pz);
+          continue;
+        }
+        ped.dir = ped.dir === 1 ? -1 : 1;
+        continue;
+      }
+
+      const ax = p[i];
+      const az = p[i + 1];
+      const bx = p[nextI];
+      const bz = p[nextI + 1];
+      const seg = Math.hypot(bx - ax, bz - az);
+      if (seg < 0.01) {
+        ped.point = nextI;
+        continue;
+      }
+
+      const t = Math.min(1, (ped.speed * dt) / seg);
+      const x = ax + (bx - ax) * t;
+      const z = az + (bz - az) * t;
+      const yaw = Math.atan2(bx - ax, bz - az);
+
+      ped.figure.place(x, z, yaw);
+      ped.figure.update(dt, ped.speed);
+
+      const far = (x - px) ** 2 + (z - pz) ** 2 > 420 * 420;
+      ped.figure.setVisible(!far && view === "walk");
+      if (far) assignRoad(ped, px, pz);
+
+      // Advance along the segment; when it is covered, step to the next point.
+      if (t >= 1) ped.point = nextI;
+      else {
+        // Rewind to the point so the interpolated position continues smoothly.
+        p[i] = x;
+        p[i + 1] = z;
+      }
+    }
   }
 
   /* ── interface ─────────────────────────────────────────────────── */
@@ -385,6 +506,9 @@ async function boot(): Promise<void> {
       toast(toastEl, COPY.globeHint);
     } else {
       pull.active = false;
+      // Coming back from the overview is an arrival: face the most open
+      // direction, so the first press of forward does something.
+      walker.faceOpenDirection();
       toast(toastEl, "Back on the street");
     }
   }
@@ -405,6 +529,11 @@ async function boot(): Promise<void> {
     last = now;
 
     walker.update(dt);
+    // The player's figure follows the walker exactly; the walker owns position
+    // and heading, the figure owns the animation.
+    player.place(walker.state.x, walker.state.z, walker.state.yaw);
+    player.update(dt, walker.isMoving ? walker.state.speed : 0);
+    if (view === "walk" && entered) stepPedestrians(dt, walker.state.x, walker.state.z);
 
     if (hero.active) {
       // Establishing orbit, slow enough to read as drift rather than motion.
@@ -527,6 +656,7 @@ async function boot(): Promise<void> {
     Object.assign(window, {
       __stap: {
         scene, camera, renderer, world, landmarks: allLandmarks, walker, markers, hero, surfaces, light,
+        player, pedestrians,
         globeScene, globeCamera, get planet() { return planet; },
       },
     });
@@ -596,44 +726,59 @@ function markerHeightAt(world: BakedWorld, landmark: Landmark): number {
 async function loadCity(landing: Landing): Promise<BakedWorld> {
   const res = await fetch(CITY_URL);
   if (!res.ok) throw new Error(`city.json: HTTP ${res.status}`);
-  const total = Number(res.headers.get("content-length") ?? 0);
-  if (!res.body || total === 0) {
-    landing.setProgress(0.5);
-    return (await res.json()) as BakedWorld;
-  }
-  const reader = res.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let seen = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    seen += value.length;
-    landing.setProgress(seen / total);
-  }
-  const buffer = new Uint8Array(seen);
-  let at = 0;
-  for (const chunk of chunks) {
-    buffer.set(chunk, at);
-    at += chunk.length;
-  }
-  const world = JSON.parse(new TextDecoder().decode(buffer)) as BakedWorld;
 
-  // The bake stores coordinates as integer decimetres; everything downstream —
-  // eye height, walking speed, collision radii — is in metres, so convert once
-  // here rather than carrying a scale factor through the scene.
-  const toMetres = (values: number[]): number[] => {
+  // Read with progress when the server advertises a length; otherwise in one
+  // go. Either way the bytes end up in the same place — an earlier version
+  // returned straight from the no-length branch and skipped the unit conversion
+  // below, which put the streets in decimetres while the landmarks were in
+  // metres: a silent ten-to-one disagreement that made every position wrong.
+  const total = Number(res.headers.get("content-length") ?? 0);
+  let text: string;
+
+  if (res.body && total > 0) {
+    const reader = res.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let seen = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      seen += value.length;
+      landing.setProgress(seen / total);
+    }
+    const buffer = new Uint8Array(seen);
+    let at = 0;
+    for (const chunk of chunks) {
+      buffer.set(chunk, at);
+      at += chunk.length;
+    }
+    text = new TextDecoder().decode(buffer);
+  } else {
+    landing.setProgress(0.5);
+    text = await res.text();
+  }
+
+  return toMetres(JSON.parse(text) as BakedWorld);
+}
+
+/**
+ * Convert the bake's integer decimetres to metres, once, at the boundary.
+ *
+ * Everything downstream — eye height, walking speed, collision radii, the
+ * spherical projection — is in metres. Converting here means no scale factor has
+ * to be carried through the scene, and no two parts of it can disagree.
+ */
+function toMetres(world: BakedWorld): BakedWorld {
+  const scale = (values: number[]): void => {
     for (let i = 0; i < values.length; i++) values[i] /= 10;
-    return values;
   };
-  for (const b of world.buildings) toMetres(b.f);
+  for (const b of world.buildings) scale(b.f);
   for (const r of world.roads) {
-    toMetres(r.p);
+    scale(r.p);
     r.w /= 10;
   }
-  for (const g of world.green) toMetres(g.p);
-  for (const w of world.water) toMetres(w.p);
-
+  for (const g of world.green) scale(g.p);
+  for (const w of world.water) scale(w.p);
   return world;
 }
 
