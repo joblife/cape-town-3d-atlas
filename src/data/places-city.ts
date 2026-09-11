@@ -46,7 +46,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.4195, lat: -33.9245, zoom: 15.6, pitch: 62, bearing: 28 },
       context: { lon: 18.4205, lat: -33.9215, zoom: 13.9, pitch: 52, bearing: 205 },
-      close: { lon: 18.4192, lat: -33.925, zoom: 16.4, pitch: 66, bearing: 115 },
+      close: { lon: 18.4195, lat: -33.9245, zoom: 16.4, pitch: 66, bearing: 115 },
     },
     tags: ["long-street", "nightlife", "victorian", "architecture", "city-bowl", "backpackers"],
     wiki: "Long Street (Cape Town)",
@@ -93,7 +93,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.416, lat: -33.9268, zoom: 15.2, pitch: 58, bearing: 195 },
       context: { lon: 18.417, lat: -33.924, zoom: 13.5, pitch: 50, bearing: 235 },
-      close: { lon: 18.416, lat: -33.9272, zoom: 16.2, pitch: 64, bearing: 175 },
+      close: { lon: 18.416, lat: -33.9268, zoom: 16.2, pitch: 64, bearing: 175 },
     },
     tags: ["garden", "voc", "slavery", "museums", "city-bowl", "trees"],
     wiki: "Company's Garden",
@@ -141,7 +141,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.4244, lat: -33.9246, zoom: 16, pitch: 63, bearing: 138 },
       context: { lon: 18.4262, lat: -33.9256, zoom: 13.8, pitch: 52, bearing: 315 },
-      close: { lon: 18.4244, lat: -33.9244, zoom: 16.7, pitch: 66, bearing: 168 },
+      close: { lon: 18.4244, lat: -33.9246, zoom: 16.7, pitch: 66, bearing: 168 },
     },
     tags: ["mandela", "civic", "edwardian", "grand-parade", "city-bowl", "1990"],
     wiki: "Cape Town City Hall",
@@ -192,7 +192,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.4279, lat: -33.9258, zoom: 15.8, pitch: 62, bearing: 92 },
       context: { lon: 18.427, lat: -33.923, zoom: 13.4, pitch: 50, bearing: 200 },
-      close: { lon: 18.4278, lat: -33.9257, zoom: 16.6, pitch: 66, bearing: 58 },
+      close: { lon: 18.4279, lat: -33.9258, zoom: 16.6, pitch: 66, bearing: 58 },
     },
     tags: ["castle", "voc", "fortress", "slavery", "heritage", "city-bowl"],
     wiki: "Castle of Good Hope",
@@ -245,7 +245,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.4239, lat: -33.928, zoom: 16, pitch: 60, bearing: 158 },
       context: { lon: 18.426, lat: -33.93, zoom: 13.2, pitch: 48, bearing: 205 },
-      close: { lon: 18.4238, lat: -33.9279, zoom: 16.8, pitch: 65, bearing: 5 },
+      close: { lon: 18.4239, lat: -33.928, zoom: 16.8, pitch: 65, bearing: 5 },
     },
     tags: ["district-six", "apartheid", "forced-removals", "memory", "museum", "city-bowl"],
     wiki: "District Six Museum",
@@ -295,7 +295,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.4202, lat: -33.9224, zoom: 16.2, pitch: 64, bearing: 152 },
       context: { lon: 18.4215, lat: -33.9205, zoom: 14, pitch: 53, bearing: 198 },
-      close: { lon: 18.4203, lat: -33.9223, zoom: 16.9, pitch: 66, bearing: 42 },
+      close: { lon: 18.4202, lat: -33.9224, zoom: 16.9, pitch: 66, bearing: 42 },
     },
     tags: ["market", "slavery", "square", "art-deco", "city-bowl", "cobbles"],
     wiki: "Greenmarket Square",
@@ -347,7 +347,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.4203, lat: -33.9245, zoom: 15.9, pitch: 61, bearing: 108 },
       context: { lon: 18.4215, lat: -33.9235, zoom: 13.8, pitch: 50, bearing: 222 },
-      close: { lon: 18.4203, lat: -33.9246, zoom: 16.7, pitch: 65, bearing: 296 },
+      close: { lon: 18.4203, lat: -33.9245, zoom: 16.7, pitch: 65, bearing: 296 },
     },
     tags: ["cathedral", "anglican", "tutu", "anti-apartheid", "gothic", "city-bowl"],
     wiki: "St George's Cathedral, Cape Town",
@@ -397,7 +397,7 @@ export const PLACES_CITY_BOWL: Place[] = [
     camera: {
       hero: { lon: 18.4194, lat: -33.9262, zoom: 15.6, pitch: 60, bearing: 148 },
       context: { lon: 18.4205, lat: -33.928, zoom: 13.2, pitch: 48, bearing: 202 },
-      close: { lon: 18.4194, lat: -33.9261, zoom: 16.5, pitch: 64, bearing: 26 },
+      close: { lon: 18.4194, lat: -33.9262, zoom: 16.5, pitch: 64, bearing: 26 },
     },
     tags: ["parliament", "politics", "heritage", "fire", "city-bowl", "1884"],
     wiki: "Houses of Parliament, Cape Town",
@@ -451,7 +451,7 @@ export const PLACES_BO_KAAP: Place[] = [
     camera: {
       hero: { lon: 18.414, lat: -33.9199, zoom: 15.5, pitch: 63, bearing: 128 },
       context: { lon: 18.4125, lat: -33.921, zoom: 13.4, pitch: 52, bearing: 178 },
-      close: { lon: 18.4142, lat: -33.9202, zoom: 16.6, pitch: 66, bearing: 248 },
+      close: { lon: 18.414, lat: -33.9199, zoom: 16.6, pitch: 66, bearing: 248 },
     },
     tags: ["bo-kaap", "cape-muslim", "heritage", "colour", "cobbles", "gentrification"],
     wiki: "Bo-Kaap",
@@ -549,9 +549,9 @@ export const PLACES_BO_KAAP: Place[] = [
       { label: "Cost", value: "Free" },
     ],
     camera: {
-      hero: { lon: 18.403, lat: -33.916, zoom: 13.5, pitch: 52, bearing: 272, lift: 350 },
+      hero: { lon: 18.403, lat: -33.916, zoom: 13.5, pitch: 52, bearing: 272 },
       context: { lon: 18.406, lat: -33.9175, zoom: 12.1, pitch: 46, bearing: 228 },
-      close: { lon: 18.4079, lat: -33.9157, zoom: 15.6, pitch: 62, bearing: 182 },
+      close: { lon: 18.403, lat: -33.916, zoom: 15.6, pitch: 62, bearing: 182 },
     },
     tags: ["signal-hill", "noon-gun", "viewpoint", "sunset", "bo-kaap", "harbour"],
     wiki: "Signal Hill (Cape Town)",
@@ -606,7 +606,7 @@ export const PLACES_CAPE_FLATS: Place[] = [
     camera: {
       hero: { lon: 18.53, lat: -33.9435, zoom: 13.4, pitch: 52, bearing: 222 },
       context: { lon: 18.535, lat: -33.946, zoom: 12, pitch: 46, bearing: 198 },
-      close: { lon: 18.529, lat: -33.9425, zoom: 15.8, pitch: 62, bearing: 88 },
+      close: { lon: 18.53, lat: -33.9435, zoom: 15.8, pitch: 62, bearing: 88 },
     },
     tags: ["langa", "township", "pass-laws", "apartheid", "cape-flats", "music"],
     wiki: "Langa, South Africa",
@@ -656,7 +656,7 @@ export const PLACES_CAPE_FLATS: Place[] = [
     camera: {
       hero: { lon: 18.4989, lat: -34.0622, zoom: 14, pitch: 50, bearing: 248 },
       context: { lon: 18.502, lat: -34.06, zoom: 12, pitch: 46, bearing: 198 },
-      close: { lon: 18.4985, lat: -34.0625, zoom: 15.8, pitch: 60, bearing: 128 },
+      close: { lon: 18.4989, lat: -34.0622, zoom: 15.8, pitch: 60, bearing: 128 },
     },
     tags: ["wetland", "birds", "hippos", "ramsar", "nature-reserve", "cape-flats"],
     wiki: "Rondevlei Nature Reserve",

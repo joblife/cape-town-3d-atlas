@@ -73,9 +73,25 @@ for (const p of PLACES) {
     );
   }
 
-  const hero = p.camera.hero;
-  const drift = Math.hypot(hero.lon - p.lon, hero.lat - p.lat) * 111;
-  check(drift < 12, `${at}: hero camera sits ${drift.toFixed(1)} km from the place`);
+  // Selecting a place must centre that place: the marker has to stay at the
+  // middle of the frame, so the shots used by the open/"look closer" actions
+  // look straight at it. Composition lives in bearing, pitch and zoom instead.
+  // `context` is the deliberate exception — it means "show me the surroundings".
+  const metres = (a, b) => Math.hypot(a.lon - b.lon, a.lat - b.lat) * 111320 * Math.cos((a.lat * Math.PI) / 180);
+  for (const key of ["hero", "close"]) {
+    const shot = p.camera[key];
+    if (!shot) continue;
+    const off = metres(shot, p);
+    check(off < 25, `${at}: ${key} camera target is ${Math.round(off)} m from the marker — selecting it would not centre the place`);
+  }
+  const ctx = p.camera.context;
+  if (ctx) {
+    // A context shot may look wider, but it must still contain the place.
+    check(
+      ctx.zoom >= 10 && ctx.zoom <= p.camera.hero.zoom + 3,
+      `${at}: context zoom ${ctx.zoom} is far wider than the hero shot`,
+    );
+  }
 }
 
 /* ── districts ──────────────────────────────────────────────────── */

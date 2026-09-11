@@ -10,16 +10,21 @@ export interface Shot {
   zoom: number;
   pitch: number;
   bearing: number;
-  /** Optional lift (metres) added to the camera target elevation, for summits. */
-  lift?: number;
 }
 
+/**
+ * The shots a place offers. `hero` and `close` both look *at* the place, so
+ * their target is the marker: selecting a place must centre it. `context` is
+ * the one shot allowed to look elsewhere, because it means "show me the
+ * surroundings". Composition belongs in bearing, pitch and zoom, not in an
+ * off-centre target — that is what makes a clicked label land under the cursor.
+ */
 export type PlaceCamera = {
-  /** Establishing shot used when a place is opened. */
+  /** Establishing shot used when a place is opened. Centred on the place. */
   hero: Shot;
-  /** Wider shot used at the start of a story beat. */
+  /** Wider shot of the surroundings, allowed to look away from the marker. */
   context?: Shot;
-  /** Tight shot for detail beats. */
+  /** Tight shot for detail beats. Centred on the place. */
   close?: Shot;
 };
 

@@ -10,9 +10,9 @@
  *    has explicitly taken the wheel.
  */
 
-import type { Map as MapLibreMap } from "maplibre-gl";
+import type { LngLatLike, Map as MapLibreMap } from "maplibre-gl";
 import type { Shot } from "../data/types.ts";
-import { distanceKm, flightDuration, offsetForInsets, shortestTurn, type Insets } from "./geo.ts";
+import { distanceKm, flightDuration, shortestTurn, type Insets } from "./geo.ts";
 import { clamp, prefersReducedMotion } from "../util/dom.ts";
 
 export type FlightResult = "arrived" | "cancelled";
@@ -100,7 +100,13 @@ export class CinematicCamera {
     const reduced = prefersReducedMotion();
 
     if (reduced) {
-      map.jumpTo({ center: [to.lon, to.lat], zoom: to.zoom, pitch: to.pitch, bearing });
+      map.jumpTo({
+        center: [to.lon, to.lat],
+        zoom: to.zoom,
+        pitch: to.pitch,
+        bearing,
+        elevation: this.elevationFor(to),
+      });
       this.target = { ...to, bearing };
       return "arrived";
     }
@@ -110,7 +116,10 @@ export class CinematicCamera {
 
     this.flying = true;
     const insets = this.deps.insets();
-    const framed = offsetForInsets({ ...to, bearing }, insets);
+    // `padding` is what keeps the subject clear of the panels: MapLibre places
+    // the camera centre in the middle of the *unpadded* area. Shifting the
+    // target as well double-corrected and threw places hundreds of pixels off.
+    const framed = { lon: to.lon, lat: to.lat };
     // Long hops arc high and read as flight; short hops stay close to the
     // ground, because pulling the camera out for 400 m is disorienting.
     const km = distanceKm(from, to);
@@ -138,9 +147,25 @@ export class CinematicCamera {
 
     this.target = { ...to, bearing };
 
-    // Arrival: swing the last few degrees onto the shot and let the pitch
-    // settle, which reads as a camera operator finding the frame.
-    if (swing !== 0 && !options.noSettle) {
+    // Arrival: settle the camera onto the exact shot. Two things happen here,
+    // in this order and for a reason.
+    //
+    // The camera's centre elevation must end up at the height of what it is
+    // looking at. A summit looked at from a sea-level plane lands a couple of
+    // hundred pixels off centre, because the marker is a ground point that the
+    // terrain lifts. `setCenterElevation` cannot run *during* a flight — it
+    // stops the animation dead — so it is applied here, on arrival.
+    //
+    // That change would be a visible jolt on its own, so the settle below
+    // always runs and masks it with motion. The last few degrees of swing are
+    // the other half of what the settle is for: it reads as a camera operator
+    // finding the frame.
+    const targetElevation = this.elevationFor(to);
+    if (Math.abs(map.transform.elevation - targetElevation) >= 0.5) {
+      map.setCenterElevation(targetElevation);
+    }
+
+    if (!options.noSettle) {
       const settle = this.waitFor("moveend", 1600);
       map.easeTo({
         center: [framed.lon, framed.lat],
@@ -171,8 +196,28 @@ export class CinematicCamera {
       zoom: shot.zoom,
       pitch: shot.pitch,
       bearing: shot.bearing,
+      elevation: this.elevationFor(shot),
     });
     this.target = { ...shot };
+  }
+
+  /**
+   * Height the camera should sit at to look at a shot: the ground under the
+   * target. Without this the camera keeps whatever height the last place left
+   * it, so a place on the mountain is framed from the previous place's
+   * altitude and the marker lands a couple of hundred pixels off centre.
+   *
+   * The terrain grid answers this directly and consistently. An authored
+   * override was tried and removed: the cableway's "lift" put the camera at
+   * 1,000 m to look at a station the terrain has at 457 m, which is worse than
+   * asking the elevation source.
+   */
+  private elevationFor(shot: Shot): number {
+    try {
+      return this.deps.map.queryTerrainElevation([shot.lon, shot.lat] as LngLatLike) ?? 0;
+    } catch {
+      return 0;
+    }
   }
 
   /** A slow unbroken orbit, for the opening and for idle moments. */

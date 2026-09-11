@@ -41,38 +41,16 @@ export function flightDuration(
   return Math.min(7600, Math.max(2600, raw)) * pace;
 }
 
-/** Convert a lng/lat delta into metres, for elevation-aware framing. */
-export function metresForZoom(zoom: number, latitude: number): number {
-  const earth = 40075016.686;
-  const perPixel = (earth * Math.cos(latitude * DEG)) / (256 * 2 ** zoom);
-  return perPixel;
-}
-
 /**
- * Given a shot and the wanted screen insets, return the adjusted camera target
- * so the subject lands in the middle of the visible (unpainted) area instead of
- * the middle of the window. Approximates the projection with a local tangent
- * plane, which is indistinguishable at these pitches.
+ * Ground metres per screen pixel at a given zoom and latitude.
+ *
+ * The divisor is 512, not 256: MapLibre renders vector tiles at 512px, so this
+ * is the scale the projection actually uses. Verified against the map's own
+ * `project()` — at zoom 14.15 and 33.92°S the projection measures 3.594 m/px,
+ * which this returns, while a 256px divisor gives 7.145 (exactly double).
  */
-export function offsetForInsets(shot: LngLat & { zoom: number; bearing: number; pitch: number }, insets: Insets): LngLat {
-  const dLeft = insets.left - insets.right;
-  const dBottom = insets.bottom - insets.top;
-  if (dLeft === 0 && dBottom === 0) return { lon: shot.lon, lat: shot.lat };
-
-  const metresPerPixel = metresForZoom(shot.zoom, shot.lat);
-  // Shift so the subject moves away from the heavier inset.
-  const eastM = (-dLeft / 2) * metresPerPixel;
-  const northM = (dBottom / 2) * metresPerPixel;
-
-  // Pitch foreshortens vertical screen motion on the ground plane.
-  const pitchFactor = 1 / Math.max(0.25, Math.cos(shot.pitch * DEG));
-  const bearingRad = shot.bearing * DEG;
-  const eastTotal = eastM + (-northM) * pitchFactor * Math.sin(bearingRad);
-  const northTotal = northM * pitchFactor * Math.cos(bearingRad);
-
-  const dLat = (northTotal / 111320) * 1;
-  const dLon = eastTotal / (111320 * Math.cos(shot.lat * DEG));
-  return { lon: shot.lon + dLon, lat: shot.lat + dLat };
+export function metresForZoom(zoom: number, latitude: number): number {
+  return (40075016.686 * Math.cos(latitude * DEG)) / (512 * 2 ** zoom);
 }
 
 /** Snap a bearing to the nearest sensible quadrant so flights turn the short

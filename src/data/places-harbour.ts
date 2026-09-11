@@ -66,7 +66,7 @@ export const PLACES_WATERFRONT: Place[] = [
       { label: "Parking", value: "Paid, fills early" },
     ],
     camera: {
-      hero: { lon: 18.42, lat: -33.904, zoom: 14.9, pitch: 62, bearing: 160 },
+      hero: { lon: 18.4206, lat: -33.9035, zoom: 14.9, pitch: 62, bearing: 160 },
       context: { lon: 18.4185, lat: -33.9025, zoom: 12.7, pitch: 54, bearing: 145 },
       close: { lon: 18.4206, lat: -33.9035, zoom: 16.9, pitch: 68, bearing: 205 },
     },
@@ -127,7 +127,7 @@ export const PLACES_WATERFRONT: Place[] = [
       { label: "Free entry", value: "Wed 10am-1pm" },
     ],
     camera: {
-      hero: { lon: 18.4228, lat: -33.9086, zoom: 15.7, pitch: 65, bearing: 212 },
+      hero: { lon: 18.423, lat: -33.9084, zoom: 15.7, pitch: 65, bearing: 212 },
       context: { lon: 18.424, lat: -33.906, zoom: 13.3, pitch: 56, bearing: 195 },
       close: { lon: 18.423, lat: -33.9084, zoom: 17, pitch: 68, bearing: 250 },
     },
@@ -409,9 +409,9 @@ export const PLACES_ATLANTIC: Place[] = [
       { label: "Cost", value: "Free" },
     ],
     camera: {
-      hero: { lon: 18.3872, lat: -33.914, zoom: 13.8, pitch: 57, bearing: 198 },
+      hero: { lon: 18.3863, lat: -33.9152, zoom: 13.8, pitch: 57, bearing: 198 },
       context: { lon: 18.396, lat: -33.907, zoom: 12.3, pitch: 50, bearing: 188 },
-      close: { lon: 18.3862, lat: -33.9152, zoom: 16.5, pitch: 63, bearing: 238 },
+      close: { lon: 18.3863, lat: -33.9152, zoom: 16.5, pitch: 63, bearing: 238 },
     },
     tags: ["promenade", "atlantic", "tidal pools", "running", "public space"],
     wiki: "Sea Point",
@@ -473,7 +473,7 @@ export const PLACES_ATLANTIC: Place[] = [
       { label: "Best time", value: "Early morning" },
     ],
     camera: {
-      hero: { lon: 18.3757, lat: -33.9405, zoom: 14.6, pitch: 61, bearing: 104 },
+      hero: { lon: 18.3754, lat: -33.9403, zoom: 14.6, pitch: 61, bearing: 104 },
       context: { lon: 18.369, lat: -33.9385, zoom: 12.8, pitch: 52, bearing: 92 },
       close: { lon: 18.3754, lat: -33.9403, zoom: 16.9, pitch: 68, bearing: 58 },
     },
@@ -548,9 +548,9 @@ export const PLACES_CAMPS_BAY: Place[] = [
       { label: "Best time", value: "Late afternoon" },
     ],
     camera: {
-      hero: { lon: 18.3786, lat: -33.9516, zoom: 14.3, pitch: 60, bearing: 108 },
+      hero: { lon: 18.3777, lat: -33.9509, zoom: 14.3, pitch: 60, bearing: 108 },
       context: { lon: 18.3735, lat: -33.9478, zoom: 12.9, pitch: 53, bearing: 130 },
-      close: { lon: 18.3776, lat: -33.9508, zoom: 16.6, pitch: 68, bearing: 42 },
+      close: { lon: 18.3777, lat: -33.9509, zoom: 16.6, pitch: 68, bearing: 42 },
     },
     tags: ["beach", "sunset", "tram history", "atlantic", "palm trees", "restaurants"],
     wiki: "Camps Bay",
@@ -609,9 +609,9 @@ export const PLACES_CAMPS_BAY: Place[] = [
       { label: "Weather", value: "Clouds by midday" },
     ],
     camera: {
-      hero: { lon: 18.3853, lat: -33.9808, zoom: 11.9, pitch: 48, bearing: 102, lift: 620 },
+      hero: { lon: 18.3853, lat: -33.9808, zoom: 11.9, pitch: 48, bearing: 102 },
       context: { lon: 18.39, lat: -33.976, zoom: 10.9, pitch: 46, bearing: 135 },
-      close: { lon: 18.3835, lat: -33.979, zoom: 13.8, pitch: 56, bearing: 290, lift: 350 },
+      close: { lon: 18.3853, lat: -33.9808, zoom: 13.8, pitch: 56, bearing: 290 },
     },
     tags: ["mountain", "hiking", "fynbos", "table mountain", "ravines", "national park"],
     wiki: "Twelve Apostles (mountains)",
