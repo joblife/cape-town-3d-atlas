@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Stap Kaap — a little city under a big mountain</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2313305e'/%3E%3Cpath d='M8 46 L22 22 L32 38 L42 26 L56 46 Z' fill='%23ffd166'/%3E%3C/svg%3E" />
+<meta name="description" content="Walk a miniature Cape Town at street level. Real building footprints and heights from OpenStreetMap, lit by the real sun, with 37 landmarks to read and collect." />
+<meta name="theme-color" content="#13305e" />
+<meta property="og:title" content="Stap Kaap — a little city under a big mountain" />
+<meta property="og:description" content="Walk a miniature Cape Town at street level. 37 landmarks to read and collect." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400&display=swap" rel="stylesheet" />
+</head>
+<body>
+<a class="skip" href="#landing">Skip to contents</a>
+
+<div id="stage" role="img" aria-label="A walkable model of central Cape Town"></div>
+
+<!-- the landing: everything you read before you start walking -->
+<main id="landing" class="landing"></main>
+
+<!-- the walk -->
+<div id="hud" class="hud" hidden></div>
+
+<!-- panels -->
+<aside id="card" class="card" hidden aria-label="Landmark"></aside>
+<aside id="notebook" class="nb" hidden aria-label="Notebook"></aside>
+<aside id="index" class="idx" hidden aria-label="Landmarks"></aside>
+
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+
+<script type="module" src="../src/stap/main.ts"></script>
+</body>
+</html>

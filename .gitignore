@@ -6,3 +6,7 @@ dist/
 
 # Large promo renders, not part of the app
 promo/
+
+# Reference-site research notes
+ref-shots/
+ref-spec.md

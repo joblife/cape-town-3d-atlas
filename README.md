@@ -15,6 +15,34 @@ npm run verify:data    # validate the content layer
 No API keys. Tiles and elevation stream at runtime from OpenFreeMap and AWS Terrain
 Tiles; weather comes from Open-Meteo; archival photographs come from Wikipedia.
 
+## Two products, one city
+
+| | |
+| --- | --- |
+| **Cape Town Atlas** — `/` | A cinematic fly-through. Real tiles and terrain, 37 places, 12 districts, 5 narrated routes. |
+| **Stap Kaap** — `/stapkaap/` | A walkable miniature. Street-level first-person movement over building geometry baked from OpenStreetMap, 17 landmarks to walk up to and read, a notebook, and the city wrapped onto a little planet for the overview. |
+
+They share the content layer, the solar model and the palette, so they agree about
+what time it is and what a place is. Progress is shared too: a place read in one is
+already known to the other.
+
+`stap` is Afrikaans for *walk*.
+
+### Baking Stap Kaap's city
+
+The walk needs building geometry that is real, static and cheap to draw every frame,
+which a map renderer cannot supply at street level. So the walkable core is extracted
+from OpenStreetMap once and shipped as an asset:
+
+```bash
+npm run bake:stap      # → public/stap/city.json (14,200 buildings, 8,377 streets)
+```
+
+It queries the Overpass API (with mirror fallback) for buildings, streets, parks and
+water across the City Bowl, Bo-Kaap, the Waterfront and Woodstock, projects them to a
+local metre plane rounded to decimetres, and writes about 3 MB. Re-run it to refresh
+the city from current OSM data.
+
 **Built by [DeepSeek V4.1 Flash](https://www.deepseek.com/news/deepseek-v4-1-flash/)**,
 working as an agent across this repository — content research and writing, the solar
 and lighting model, the camera, the data layer and the interface. The map data is

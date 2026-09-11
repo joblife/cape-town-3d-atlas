@@ -2,17 +2,21 @@
   "name": "cape-town-atlas",
   "private": true,
   "version": "2.0.0",
-  "description": "Cape Town Atlas — an interactive field guide to the Mother City. Live 3D map, curated districts, cinematic stories, real sun and weather.",
+  "description": "Cape Town Atlas \u2014 an interactive field guide to the Mother City. Live 3D map, curated districts, cinematic stories, real sun and weather.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --port 4173",
     "typecheck": "tsc --noEmit",
-    "verify:data": "node scripts/verify-data.mjs"
+    "verify:data": "node scripts/verify-data.mjs",
+    "bake:stap": "node scripts/bake-stap.mjs"
   },
   "dependencies": {
-    "maplibre-gl": "^5.7.0"
+    "@types/node": "^22.20.2",
+    "@types/three": "^0.185.4",
+    "maplibre-gl": "^5.7.0",
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "typescript": "^5.6.3",
