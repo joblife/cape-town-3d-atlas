@@ -15,6 +15,12 @@ npm run verify:data    # validate the content layer
 No API keys. Tiles and elevation stream at runtime from OpenFreeMap and AWS Terrain
 Tiles; weather comes from Open-Meteo; archival photographs come from Wikipedia.
 
+**Built by [DeepSeek V4.1 Flash](https://www.deepseek.com/news/deepseek-v4-1-flash/)**,
+working as an agent across this repository — content research and writing, the solar
+and lighting model, the camera, the data layer and the interface. The map data is
+other people's work and is credited under Sources; the atlas built on top of it is
+machine-written, and the About panel in the app says so too.
+
 ---
 
 ## What it is

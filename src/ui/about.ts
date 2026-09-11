@@ -33,6 +33,14 @@ export function renderAbout(dialog: HTMLDialogElement, options: AboutOptions = {
     }),
   );
 
+  body.append(el("h3", { text: "How it was built" }));
+  body.append(
+    el("p", {
+      text:
+        "Designed, written and engineered with DeepSeek V4.1 Flash, working as an agent across the codebase: content research, the solar and lighting model, the camera, and the interface. The map data is other people's work and is credited above; the atlas built on top of it is machine-written.",
+    }),
+  );
+
   body.append(el("h3", { text: "The light" }));
   body.append(
     el("p", {
